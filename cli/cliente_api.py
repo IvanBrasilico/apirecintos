@@ -63,7 +63,7 @@ def carrega(dir, arquivo, envio):
         rv = requests.post(envio + '/set_eventos',
                            files={'file': (testes.read(), arquivo)})
     else:  # Valida arquivo json com BD na memória
-        print('Criando Banco na memória para testes')
+        print('Criando Banco na memória para tests')
         session, engine = orm.init_db('sqlite:///:memory:')
         orm.Base.metadata.create_all(bind=engine)
         usecases = UseCases(session, 'TESTE', 'localhost', '.')
