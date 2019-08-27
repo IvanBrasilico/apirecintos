@@ -1,6 +1,5 @@
 from sqlalchemy.exc import IntegrityError
 
-import assinador
 from apiserver.models import orm
 from apiserver.use_cases.usecases import UseCases
 from tests.basetest import BaseTestCase

@@ -26,16 +26,12 @@ def create_session():
     global db_session
     global engine
     global testes
-    global cadastros
     if db_session is None:
         print('Creating memory database')
         db_session, engine = orm.init_db('sqlite:///:memory:')
         with open(os.path.join(os.path.dirname(__file__),
-                               'tests.json'), 'r') as json_in:
+                               'testes.json'), 'r') as json_in:
             testes = json.load(json_in)
-        with open(os.path.join(os.path.dirname(__file__),
-                               'cadastros.json'), 'r') as json_in:
-            cadastros = json.load(json_in)
     return db_session, engine, testes, cadastros
 
 
@@ -89,7 +85,8 @@ class BaseTestCase(TestCase):
                         self.assertEqual(v, vb)
 
     def compara_eventos(self, teste, response_json):
-        for data in ['dataevento', 'dataregistro', 'dataoperacao', 'dataliberacao', 'dataagendamento']:
+        for data in ['dataevento', 'dataregistro', 'dataoperacao',
+                     'dataliberacao', 'dataagendamento']:
             if teste.get(data) is not None:
                 teste.pop(data)
             if response_json.get(data) is not None:
