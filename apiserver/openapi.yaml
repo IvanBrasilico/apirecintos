@@ -1,0 +1,2383 @@
+openapi: 3.0.1
+info:
+  title: APIRecintos
+  description: API para prestação de informações sobre eventos de controle aduaneiro
+    a cargo dos Redex, Recintos, Administradores e Operadores Aeroportuários, Portuários
+    e demais intervenientes em carga sobre controle aduaneiro.
+  version: "1.0b"
+servers:
+- url: /
+paths:
+  /auth:
+    post:
+      summary: retorna token JWT
+      operationId: authentication.generate_token
+      requestBody:
+        description: Terminal e senha
+        content:
+          application/json:
+            schema:
+              x-body-name: recinto
+              $ref: '#/components/schemas/AuthenticationJson'
+      responses:
+        '200':
+          description: JWT token
+          content:
+            'text/plain':
+              schema:
+                type: string
+  /secret:
+    get:
+      summary: Return secret string
+      operationId: authentication.get_secret
+      responses:
+        '200':
+          description: secret response
+          content:
+            'text/plain':
+              schema:
+                type: string
+      security:
+      - jwt: ['secret']
+  /eventos/filter:
+    post:
+      operationId: api.filter_eventos
+      requestBody:
+        description: Lista de eventos que correspondam ao filtro
+        content:
+          application/json:
+            schema:
+              x-body-name: filtro
+              $ref: '#/components/schemas/FiltroEvento'
+        required: true
+      responses:
+        200:
+          description: Evento Base
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArrayEventoBase'
+        400:
+          description: Erro
+          content: {}
+        404:
+          description: Eventos não encontrados para filtro atual.
+          content: {}
+        default:
+          description: Erro inesperado
+          content: {}
+  /eventosnovos/list:
+    post:
+      operationId: api.get_eventosnovos
+      requestBody:
+        description: Lista de eventos maiores que um ID ou Data
+        content:
+          application/json:
+            schema:
+              x-body-name: filtro
+              $ref: '#/components/schemas/FiltroNovoEvento'
+        required: true
+      responses:
+        200:
+          description: Evento Base
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArrayEventoBase'
+        400:
+          description: Erro
+          content: {}
+        404:
+          description: Eventos não encontrados para filtro atual.
+          content: {}
+        default:
+          description: Erro inesperado
+          content: {}
+  /acessopessoa:
+    post:
+      operationId: api.acessopessoa
+      requestBody:
+        description: Controle de passagem em ponto de controle / entrada e saida de
+          pessoas em area
+        content:
+          application/json:
+            schema:
+              x-body-name: evento
+              $ref: '#/components/schemas/AcessoPessoa'
+        required: true
+      responses:
+        201:
+          description: Evento incluido
+          content: {}
+        400:
+          description: Entrada invalida - erro nos campos ou na validacao
+          content: {}
+        409:
+          description: Evento repetido ou outro erro de integridade
+          content: {}
+  /acessopessoa/{IDEvento}:
+    get:
+      operationId: api.get_acessopessoa
+      parameters:
+      - name: IDEvento
+        in: path
+        description: ID do Evento no Sistema original
+        required: true
+        schema:
+          type: integer
+      responses:
+        200:
+          description: Evento Base
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcessoPessoa'
+        400:
+          description: ID inválido
+          content: {}
+        404:
+          description: Evento com ID não encontrado para recinto atual.
+          content: {}
+        default:
+          description: Erro inesperado
+          content: {}
+  /credenciamentopessoa:
+    post:
+      operationId: api.credenciamentopessoa
+      requestBody:
+        description: Controle de cadastro de pessoas em area
+        content:
+          application/json:
+            schema:
+              x-body-name: evento
+              $ref: '#/components/schemas/CredenciamentoPessoa'
+        required: true
+      responses:
+        201:
+          description: Evento incluido
+          content: {}
+        400:
+          description: Entrada invalida - erro nos campos ou na validacao
+          content: {}
+        409:
+          description: Evento repetido ou outro erro de integridade
+          content: {}
+  /credenciamentopessoa/{IDEvento}:
+    get:
+      operationId: api.get_credenciamentopessoa
+      parameters:
+      - name: IDEvento
+        in: path
+        description: ID do Evento no Sistema original
+        required: true
+        schema:
+          type: integer
+      responses:
+        200:
+          description: Evento Base
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CredenciamentoPessoa'
+        400:
+          description: ID inválido
+          content: {}
+        404:
+          description: Evento com ID não encontrado para recinto atual.
+          content: {}
+        default:
+          description: Erro inesperado
+          content: {}
+  /credenciamentopessoa/inativar/{IDEvento}:
+    get:
+      operationId: api.inativar_credenciamentopessoa
+      parameters:
+      - name: IDEvento
+        in: path
+        description: ID do Evento no Sistema original
+        required: true
+        schema:
+          type: integer
+      responses:
+        201:
+          description: Evento Base
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RespostaPadrao'
+        400:
+          description: ID inválido
+          content: {}
+        404:
+          description: Evento com ID não encontrado para recinto atual.
+          content: {}
+        default:
+          description: Erro inesperado
+          content: {}
+  /agendamentoacessoveiculo:
+    post:
+      operationId: api.agendamentoacessoveiculo
+      requestBody:
+        description: Controle de passagem em ponto de controle / entrada e saida de
+          veiculos em area
+        content:
+          application/json:
+            schema:
+              x-body-name: evento
+              $ref: '#/components/schemas/AgendamentoAcessoVeiculo'
+        required: true
+      responses:
+        201:
+          description: Evento incluido
+          content: {}
+        400:
+          description: Entrada invalida - erro nos campos ou na validacao
+          content: {}
+        409:
+          description: Evento repetido ou outro erro de integridade
+          content: {}
+  /agendamentoacessoveiculo/{IDEvento}:
+    get:
+      operationId: api.get_agendamentoacessoveiculo
+      parameters:
+      - name: IDEvento
+        in: path
+        description: ID do Evento no Sistema original
+        required: true
+        schema:
+          type: integer
+      responses:
+        200:
+          description: Evento Base
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgendamentoAcessoVeiculo'
+        400:
+          description: ID inválido
+          content: {}
+        404:
+          description: Evento com ID não encontrado para recinto atual.
+          content: {}
+        default:
+          description: Erro inesperado
+          content: {}
+  /acessoveiculo:
+    post:
+      operationId: api.acessoveiculo
+      requestBody:
+        description: Controle de passagem em ponto de controle / entrada e saida de
+          veiculos em area
+        content:
+          application/json:
+            schema:
+              x-body-name: evento
+              $ref: '#/components/schemas/AcessoVeiculo'
+        required: true
+      responses:
+        201:
+          description: Evento incluido
+          content: {}
+        400:
+          description: Entrada invalida - erro nos campos ou na validacao
+          content: {}
+        409:
+          description: Evento repetido ou outro erro de integridade
+          content: {}
+  /acessoveiculo/{IDEvento}:
+    get:
+      operationId: api.get_acessoveiculo
+      parameters:
+      - name: IDEvento
+        in: path
+        description: ID do Evento no Sistema original
+        required: true
+        schema:
+          type: integer
+      responses:
+        200:
+          description: Evento Base
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcessoVeiculo'
+        400:
+          description: ID inválido
+          content: {}
+        404:
+          description: Evento com ID não encontrado para recinto atual.
+          content: {}
+        default:
+          description: Erro inesperado
+          content: {}
+  /credenciamentoveiculo:
+    post:
+      operationId: api.credenciamentoveiculo
+      requestBody:
+        description: Controle de cadastro de veiculos em area
+        content:
+          application/json:
+            schema:
+              x-body-name: evento
+              $ref: '#/components/schemas/CredenciamentoVeiculo'
+        required: true
+      responses:
+        201:
+          description: Evento incluido
+          content: {}
+        400:
+          description: Entrada invalida - erro nos campos ou na validacao
+          content: {}
+        409:
+          description: Evento repetido ou outro erro de integridade
+          content: {}
+  /credenciamentoveiculo/{IDEvento}:
+    get:
+      operationId: api.get_credenciamentoveiculo
+      parameters:
+      - name: IDEvento
+        in: path
+        description: ID do Evento no Sistema original
+        required: true
+        schema:
+          type: integer
+      responses:
+        200:
+          description: Evento Base
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CredenciamentoVeiculo'
+        400:
+          description: ID inválido
+          content: {}
+        404:
+          description: Evento com ID não encontrado para recinto atual.
+          content: {}
+        default:
+          description: Erro inesperado
+          content: {}
+  /credenciamentoveiculo/inativar/{IDEvento}:
+    get:
+      operationId: api.inativar_credenciamentoveiculo
+      parameters:
+      - name: IDEvento
+        in: path
+        description: ID do Evento no Sistema original
+        required: true
+        schema:
+          type: integer
+      responses:
+        201:
+          description: Evento Base
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CredenciamentoVeiculo'
+        400:
+          description: ID inválido
+          content: {}
+        404:
+          description: Evento com ID não encontrado para recinto atual.
+          content: {}
+        default:
+          description: Erro inesperado
+          content: {}
+  /artefatorecinto:
+    post:
+      operationId: api.artefatorecinto
+      requestBody:
+        description: Controle de areas, gates, cameras, etc por geolocalizacao
+        content:
+          application/json:
+            schema:
+              x-body-name: evento
+              $ref: '#/components/schemas/ArtefatoRecinto'
+        required: true
+      responses:
+        201:
+          description: Evento incluido
+          content: {}
+        400:
+          description: Entrada invalida - erro nos campos ou na validacao
+          content: {}
+        409:
+          description: Evento repetido ou outro erro de integridade
+          content: {}
+  /artefatorecinto/{IDEvento}:
+    get:
+      operationId: api.get_artefatorecinto
+      parameters:
+      - name: IDEvento
+        in: path
+        description: ID do Evento no Sistema original
+        required: true
+        schema:
+          type: integer
+      responses:
+        200:
+          description: Evento Base
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArtefatoRecinto'
+        400:
+          description: ID inválido
+          content: {}
+        404:
+          description: Evento com ID não encontrado para recinto atual.
+          content: {}
+        default:
+          description: Erro inesperado
+          content: {}
+  /ocorrencia:
+    post:
+      operationId: api.ocorrencia
+      requestBody:
+        description: Controle de areas, gates, cameras, etc por geolocalizacao
+        content:
+          application/json:
+            schema:
+              x-body-name: evento
+              $ref: '#/components/schemas/Ocorrencia'
+        required: true
+      responses:
+        201:
+          description: Evento incluido
+          content: {}
+        400:
+          description: Entrada invalida - erro nos campos ou na validacao
+          content: {}
+        409:
+          description: Evento repetido ou outro erro de integridade
+          content: {}
+  /ocorrencia/{IDEvento}:
+    get:
+      operationId: api.get_ocorrencia
+      parameters:
+      - name: IDEvento
+        in: path
+        description: ID do Evento no Sistema original
+        required: true
+        schema:
+          type: integer
+      responses:
+        200:
+          description: Evento Base
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ocorrencia'
+        400:
+          description: ID inválido
+          content: {}
+        404:
+          description: Evento com ID não encontrado para recinto atual.
+          content: {}
+        default:
+          description: Erro inesperado
+          content: {}
+  /pesagemveiculovazio:
+    post:
+      operationId: api.pesagemveiculovazio
+      requestBody:
+        description: Controle de pesagem de tara de veiculos em modal rodoviario
+        content:
+          application/json:
+            schema:
+              x-body-name: evento
+              $ref: '#/components/schemas/PesagemVeiculoVazio'
+        required: true
+      responses:
+        201:
+          description: Evento incluido
+          content: {}
+        400:
+          description: Entrada invalida - erro nos campos ou na validacao
+          content: {}
+        409:
+          description: Evento repetido ou outro erro de integridade
+          content: {}
+  /pesagemveiculovazio/{IDEvento}:
+    get:
+      operationId: api.get_pesagemveiculovazio
+      parameters:
+      - name: IDEvento
+        in: path
+        description: ID do Evento no Sistema original
+        required: true
+        schema:
+          type: integer
+      responses:
+        200:
+          description: Evento Base
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PesagemVeiculoVazio'
+        400:
+          description: ID inválido
+          content: {}
+        404:
+          description: Evento com ID não encontrado para recinto atual.
+          content: {}
+        default:
+          description: Erro inesperado
+          content: {}
+  /pesagemmaritimo:
+    post:
+      operationId: api.pesagemmaritimo
+      requestBody:
+        description: Controle de pesagem no modal maritimo
+        content:
+          application/json:
+            schema:
+              x-body-name: evento
+              $ref: '#/components/schemas/PesagemMaritimo'
+        required: true
+      responses:
+        201:
+          description: Evento incluido
+          content: {}
+        400:
+          description: Entrada invalida - erro nos campos ou na validacao
+          content: {}
+        409:
+          description: Evento repetido ou outro erro de integridade
+          content: {}
+  /pesagemmaritimo/{IDEvento}:
+    get:
+      operationId: api.get_pesagemmaritimo
+      parameters:
+      - name: IDEvento
+        in: path
+        description: ID do Evento no Sistema original
+        required: true
+        schema:
+          type: integer
+      responses:
+        200:
+          description: Evento Base
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PesagemMaritimo'
+        400:
+          description: ID inválido
+          content: {}
+        404:
+          description: Evento com ID não encontrado para recinto atual.
+          content: {}
+        default:
+          description: Erro inesperado
+          content: {}
+  /pesagemterrestre:
+    post:
+      operationId: api.pesagemterrestre
+      requestBody:
+        description: Controle de pesagem no modal rodoviario
+        content:
+          application/json:
+            schema:
+              x-body-name: evento
+              $ref: '#/components/schemas/PesagemTerrestre'
+        required: true
+      responses:
+        201:
+          description: Evento incluido
+          content: {}
+        400:
+          description: Entrada invalida - erro nos campos ou na validacao
+          content: {}
+        409:
+          description: Evento repetido ou outro erro de integridade
+          content: {}
+  /pesagemterrestre/{IDEvento}:
+    get:
+      operationId: api.get_pesagemterrestre
+      parameters:
+      - name: IDEvento
+        in: path
+        description: ID do Evento no Sistema original
+        required: true
+        schema:
+          type: integer
+      responses:
+        200:
+          description: Evento Base
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PesagemTerrestre'
+        400:
+          description: ID inválido
+          content: {}
+        404:
+          description: Evento com ID não encontrado para recinto atual.
+          content: {}
+        default:
+          description: Erro inesperado
+          content: {}
+  /inspecaonaoinvasiva:
+    post:
+      operationId: api.inspecaonaoinvasiva
+      requestBody:
+        description: Controle de inspecoes nao invasiva - recepcao de imagens
+        content:
+          application/json:
+            schema:
+              x-body-name: evento
+              $ref: '#/components/schemas/InspecaonaoInvasiva'
+        required: true
+      responses:
+        201:
+          description: Evento incluido
+          content: {}
+        400:
+          description: Entrada invalida - erro nos campos ou na validacao
+          content: {}
+        409:
+          description: Evento repetido ou outro erro de integridade
+          content: {}
+  /inspecaonaoinvasiva/{IDEvento}:
+    get:
+      operationId: api.get_inspecaonaoinvasiva
+      parameters:
+      - name: IDEvento
+        in: path
+        description: ID do Evento no Sistema original
+        required: true
+        schema:
+          type: integer
+      responses:
+        200:
+          description: Evento Base
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InspecaonaoInvasiva'
+        400:
+          description: ID inválido
+          content: {}
+        404:
+          description: Evento com ID não encontrado para recinto atual.
+          content: {}
+        default:
+          description: Erro inesperado
+          content: {}
+  /operacaonavio:
+    post:
+      operationId: api.operacaonavio
+      requestBody:
+        description: Controle de inspecoes nao invasiva - recepcao de imagens
+        content:
+          application/json:
+            schema:
+              x-body-name: evento
+              $ref: '#/components/schemas/OperacaoNavio'
+        required: true
+      responses:
+        201:
+          description: Evento incluido
+          content: {}
+        400:
+          description: Entrada invalida - erro nos campos ou na validacao
+          content: {}
+        409:
+          description: Evento repetido ou outro erro de integridade
+          content: {}
+  /operacaonavio/{IDEvento}:
+    get:
+      operationId: api.get_operacaonavio
+      parameters:
+      - name: IDEvento
+        in: path
+        description: ID do Evento no Sistema original
+        required: true
+        schema:
+          type: integer
+      responses:
+        200:
+          description: Evento Base
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperacaoNavio'
+        400:
+          description: ID inválido
+          content: {}
+        404:
+          description: Evento com ID não encontrado para recinto atual.
+          content: {}
+        default:
+          description: Erro inesperado
+          content: {}
+  /posicaoveiculo:
+    post:
+      operationId: api.posicaoveiculo
+      requestBody:
+        description: Controle de posição dos veiculos no Pátio
+        content:
+          application/json:
+            schema:
+              x-body-name: evento
+              $ref: '#/components/schemas/PosicaoVeiculoPatio'
+        required: true
+      responses:
+        201:
+          description: Evento incluido
+          content: {}
+        400:
+          description: Entrada invalida - erro nos campos ou na validacao
+          content: {}
+        409:
+          description: Evento repetido ou outro erro de integridade
+          content: {}
+  /posicaoveiculo/{IDEvento}:
+    get:
+      operationId: api.get_posicaoveiculo
+      parameters:
+      - name: IDEvento
+        in: path
+        description: ID do Evento no Sistema original
+        required: true
+        schema:
+          type: integer
+      responses:
+        200:
+          description: Evento Base
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PosicaoVeiculoPatio'
+        400:
+          description: ID inválido
+          content: {}
+        404:
+          description: Evento com ID não encontrado para recinto atual.
+          content: {}
+        default:
+          description: Erro inesperado
+          content: {}
+  /posicaoconteiner:
+    post:
+      operationId: api.posicaoconteiner
+      requestBody:
+        description: Controle de posição dos Contëineres no Pátio
+        content:
+          application/json:
+            schema:
+              x-body-name: evento
+              $ref: '#/components/schemas/PosicaoConteiner'
+        required: true
+      responses:
+        201:
+          description: Evento incluido
+          content: {}
+        400:
+          description: Entrada invalida - erro nos campos ou na validacao
+          content: {}
+        409:
+          description: Evento repetido ou outro erro de integridade
+          content: {}
+  /posicaoconteiner/list:
+    post:
+      operationId: api.list_posicaoconteiner
+      requestBody:
+        description: Lista de posição dos Contëineres no Pátio
+        content:
+          application/json:
+            schema:
+              x-body-name: filtro
+              $ref: '#/components/schemas/FiltroPosicaoConteiner'
+        required: true
+      responses:
+        200:
+          description: Evento Base
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArrayPosicaoConteiner'
+        400:
+          description: Erro
+          content: {}
+        404:
+          description: Eventos não encontrados para filtro atual.
+          content: {}
+        default:
+          description: Erro inesperado
+          content: {}
+  /posicaoconteiner/{IDEvento}:
+    get:
+      operationId: api.get_posicaoconteiner
+      parameters:
+      - name: IDEvento
+        in: path
+        description: ID do Evento no Sistema original
+        required: true
+        schema:
+          type: integer
+      responses:
+        200:
+          description: Evento Base
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PosicaoConteiner'
+        400:
+          description: ID inválido
+          content: {}
+        404:
+          description: Evento com ID não encontrado para recinto atual.
+          content: {}
+        default:
+          description: Erro inesperado
+          content: {}
+  /desunitizacao:
+    post:
+      operationId: api.desunitizacao
+      requestBody:
+        description: Controle de desunitização
+        content:
+          application/json:
+            schema:
+              x-body-name: evento
+              $ref: '#/components/schemas/Desunitizacao'
+        required: true
+      responses:
+        201:
+          description: Evento incluido
+          content: {}
+        400:
+          description: Entrada invalida - erro nos campos ou na validacao
+          content: {}
+        409:
+          description: Evento repetido ou outro erro de integridade
+          content: {}
+  /desunitizacao/{IDEvento}:
+    get:
+      operationId: api.get_desunitizacao
+      parameters:
+      - name: IDEvento
+        in: path
+        description: ID do Evento no Sistema original
+        required: true
+        schema:
+          type: integer
+      responses:
+        200:
+          description: Evento Base
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Desunitizacao'
+        400:
+          description: ID inválido
+          content: {}
+        404:
+          description: Evento com ID não encontrado para recinto atual.
+          content: {}
+        default:
+          description: Erro inesperado
+          content: {}
+  /posicaolote:
+    post:
+      operationId: api.posicaolote
+      requestBody:
+        description: Controle de posição dos lotes nos armazens
+        content:
+          application/json:
+            schema:
+              x-body-name: evento
+              $ref: '#/components/schemas/PosicaoLote'
+        required: true
+      responses:
+        201:
+          description: Evento incluido
+          content: {}
+        400:
+          description: Entrada invalida - erro nos campos ou na validacao
+          content: {}
+        409:
+          description: Evento repetido ou outro erro de integridade
+          content: {}
+  /posicaolote/{IDEvento}:
+    get:
+      operationId: api.get_posicaolote
+      parameters:
+      - name: IDEvento
+        in: path
+        description: ID do Evento no Sistema original
+        required: true
+        schema:
+          type: integer
+      responses:
+        200:
+          description: Evento Base
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PosicaoLote'
+        400:
+          description: ID inválido
+          content: {}
+        404:
+          description: Evento com ID não encontrado para recinto atual.
+          content: {}
+        default:
+          description: Erro inesperado
+          content: {}
+  /avarialote:
+    post:
+      operationId: api.avarialote
+      requestBody:
+        description: Controle de posição dos lotes nos armazens
+        content:
+          application/json:
+            schema:
+              x-body-name: evento
+              $ref: '#/components/schemas/AvariaLote'
+        required: true
+      responses:
+        201:
+          description: Evento incluido
+          content: {}
+        400:
+          description: Entrada invalida - erro nos campos ou na validacao
+          content: {}
+        409:
+          description: Evento repetido ou outro erro de integridade
+          content: {}
+  /avarialote/{IDEvento}:
+    get:
+      operationId: api.get_avarialote
+      parameters:
+      - name: IDEvento
+        in: path
+        description: ID do Evento no Sistema original
+        required: true
+        schema:
+          type: integer
+      responses:
+        200:
+          description: Evento Base
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AvariaLote'
+        400:
+          description: ID inválido
+          content: {}
+        404:
+          description: Evento com ID não encontrado para recinto atual.
+          content: {}
+        default:
+          description: Erro inesperado
+          content: {}
+  /unitizacao:
+    post:
+      operationId: api.unitizacao
+      requestBody:
+        description: Controle de posição dos lotes nos armazens
+        content:
+          application/json:
+            schema:
+              x-body-name: evento
+              $ref: '#/components/schemas/UnitizacaoLote'
+        required: true
+      responses:
+        201:
+          description: Evento incluido
+          content: {}
+        400:
+          description: Entrada invalida - erro nos campos ou na validacao
+          content: {}
+        409:
+          description: Evento repetido ou outro erro de integridade
+          content: {}
+  /unitizacao/{IDEvento}:
+    get:
+      operationId: api.get_unitizacao
+      parameters:
+      - name: IDEvento
+        in: path
+        description: ID do Evento no Sistema original
+        required: true
+        schema:
+          type: integer
+      responses:
+        200:
+          description: Evento Base
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnitizacaoLote'
+        400:
+          description: ID inválido
+          content: {}
+        404:
+          description: Evento com ID não encontrado para recinto atual.
+          content: {}
+        default:
+          description: Erro inesperado
+          content: {}
+  /dtsc:
+    post:
+      operationId: api.dtsc
+      requestBody:
+        description: Controle de posição dos lotes nos armazens
+        content:
+          application/json:
+            schema:
+              x-body-name: evento
+              $ref: '#/components/schemas/DTSC'
+        required: true
+      responses:
+        201:
+          description: Evento incluido
+          content: {}
+        400:
+          description: Entrada invalida - erro nos campos ou na validacao
+          content: {}
+        409:
+          description: Evento repetido ou outro erro de integridade
+          content: {}
+  /dtsc/{IDEvento}:
+    get:
+      operationId: api.get_dtsc
+      parameters:
+      - name: IDEvento
+        in: path
+        description: ID do Evento no Sistema original
+        required: true
+        schema:
+          type: integer
+      responses:
+        200:
+          description: Evento Base
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DTSC'
+        400:
+          description: ID inválido
+          content: {}
+        404:
+          description: Evento com ID não encontrado para recinto atual.
+          content: {}
+        default:
+          description: Erro inesperado
+          content: {}
+  /cadastrorepresentacao:
+    post:
+      operationId: api.cadastrorepresentacao
+      requestBody:
+        description: Controle de representacao
+        content:
+          application/json:
+            schema:
+              x-body-name: evento
+              $ref: '#/components/schemas/CadastroRepresentacao'
+        required: true
+      responses:
+        201:
+          description: Evento incluido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RespostaPadrao'
+        400:
+          description: Entrada invalida - erro nos campos ou na validacao
+          content: {}
+        409:
+          description: Evento repetido ou outro erro de integridade
+          content: {}
+  /cadastrorepresentacao/{IDEvento}:
+    get:
+      operationId: api.get_cadastrorepresentacao
+      parameters:
+      - name: IDEvento
+        in: path
+        description: ID do Evento no Sistema original
+        required: true
+        schema:
+          type: integer
+      responses:
+        200:
+          description: Evento Base
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CadastroRepresentacao'
+        400:
+          description: ID inválido
+          content: {}
+        404:
+          description: Evento com ID não encontrado para recinto atual.
+          content: {}
+        default:
+          description: Erro inesperado
+          content: {}
+  /cadastrorepresentacao/encerra/{IDEvento}:
+    get:
+      operationId: api.encerra_cadastrorepresentacao
+      parameters:
+      - name: IDEvento
+        in: path
+        description: ID do Evento no Sistema original
+        required: true
+        schema:
+          type: integer
+      responses:
+        201:
+          description: Evento Base
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CadastroRepresentacao'
+        400:
+          description: ID inválido
+          content: {}
+        404:
+          description: Evento com ID não encontrado para recinto atual.
+          content: {}
+        default:
+          description: Erro inesperado
+          content: {}
+  /informacaobloqueio:
+    post:
+      operationId: api.informacaobloqueio
+      requestBody:
+        description: Controle de representacao
+        content:
+          application/json:
+            schema:
+              x-body-name: evento
+              $ref: '#/components/schemas/InformacaoBloqueio'
+        required: true
+      responses:
+        201:
+          description: Evento incluido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RespostaPadrao'
+        400:
+          description: Entrada invalida - erro nos campos ou na validacao
+          content: {}
+        409:
+          description: Evento repetido ou outro erro de integridade
+          content: {}
+  /informacaobloqueio/{IDEvento}:
+    get:
+      operationId: api.get_informacaobloqueio
+      parameters:
+      - name: IDEvento
+        in: path
+        description: ID do Evento no Sistema original
+        required: true
+        schema:
+          type: integer
+      responses:
+        200:
+          description: Evento Base
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InformacaoBloqueio'
+        400:
+          description: ID inválido
+          content: {}
+        404:
+          description: Evento com ID não encontrado para recinto atual.
+          content: {}
+        default:
+          description: Erro inesperado
+          content: {}
+  /informacaobloqueio/desbloqueia/{IDEvento}:
+    get:
+      operationId: api.desbloqueia_informacaobloqueio
+      parameters:
+      - name: IDEvento
+        in: path
+        description: ID do Evento no Sistema original
+        required: true
+        schema:
+          type: integer
+      responses:
+        201:
+          description: Evento Base
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RespostaPadrao'
+        400:
+          description: ID inválido
+          content: {}
+        404:
+          description: Evento com ID não encontrado para recinto atual.
+          content: {}
+        default:
+          description: Erro inesperado
+          content: {}
+  /agendamentoconferencia:
+    post:
+      operationId: api.agendamentoconferencia
+      requestBody:
+        description: Controle de representacao
+        content:
+          application/json:
+            schema:
+              x-body-name: evento
+              $ref: '#/components/schemas/AgendamentoConferencia'
+        required: true
+      responses:
+        201:
+          description: Evento incluido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RespostaPadrao'
+        400:
+          description: Entrada invalida - erro nos campos ou na validacao
+          content: {}
+        409:
+          description: Evento repetido ou outro erro de integridade
+          content: {}
+  /agendamentoconferencia/{IDEvento}:
+    get:
+      operationId: api.get_agendamentoconferencia
+      parameters:
+      - name: IDEvento
+        in: path
+        description: ID do Evento no Sistema original
+        required: true
+        schema:
+          type: integer
+      responses:
+        200:
+          description: Evento Base
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CadastroRepresentacao'
+        400:
+          description: ID inválido
+          content: {}
+        404:
+          description: Evento com ID não encontrado para recinto atual.
+          content: {}
+        default:
+          description: Erro inesperado
+          content: {}
+  /agendamentoconferencia/cancela/{IDEvento}:
+    get:
+      operationId: api.cancela_agendamentoconferencia
+      parameters:
+      - name: IDEvento
+        in: path
+        description: ID do Evento no Sistema original
+        required: true
+        schema:
+          type: integer
+      responses:
+        201:
+          description: Evento Base
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RespostaPadrao'
+        400:
+          description: ID inválido
+          content: {}
+        404:
+          description: Evento com ID não encontrado para recinto atual.
+          content: {}
+        default:
+          description: Erro inesperado
+          content: {}
+components:
+  securitySchemes:
+    jwt:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      x-bearerInfoFunc: authentication.decode_token
+  schemas:
+    AuthenticationJson:
+      type: object
+      properties:
+        recinto:
+          type: string
+        senha:
+          type: string
+    EntradaSaida:
+      type: string
+      description: Operação de entrada ou de saída de carga
+      enum:
+      - Entrada
+      - Saida
+    TipoOperacaoNavio:
+      type: string
+      description: Embarque ou desembarque
+      enum:
+      - Arrumacao
+      - Embarque
+      - Desembarque
+    Autoridade:
+      type: string
+      description: Sigla da autoridade
+      enum:
+      - RFB
+      - MAPA
+      - ACI
+      - ANVISA
+      - IBAMA
+      - PF
+      - JUSTICA
+    TipoDocumentoTransporte:
+      type: string
+      description: Sigla que identifica o tipo de documento de transporte que ampara a entrada ou saida da carga
+      enum:
+      - CE
+      - NFE
+      - DUE
+      - DA
+      - DTA
+      - DI
+    TipoDeclaracaoAduaneira:
+      type: string
+      description: Sigla que identifica o tipo de declaracao
+      enum:
+      - DUE
+      - DA
+      - DTA
+      - DI
+    TipoDocumentoDesconsolidacao:
+      type: string
+      description: Sigla que identifica o tipo de documento que ampara a desunitizacao
+      enum:
+      - CE
+    TipoDocumentoPapel:
+      type: string
+      description: Sigla que identifica o tipo de documento do agente ou transportador que ampara a desunitizacao
+      enum:
+      - BL
+      - AWB
+    TipoVolume:
+      type: string
+      description: Sigla que identifica o tipo de documento do agente ou transportador que ampara a desunitizacao
+      enum:
+      - bigbag
+      - bombona
+      - caixa de madeira
+      - caixa de papelao
+      - caixa de aco
+      - gaiola
+      - lingada
+      - pallet
+      - saco
+      - tambor
+    FormaIdentificacao:
+      type: string
+      description: Identificação (cartão-C, biométrico-B, facial-F ou manual-M)
+      enum:
+      - C
+      - B
+      - F
+      - M
+    TipoArtefato:
+      type: string
+      description: Designacao do tipo de artefato
+      enum:
+      - Area (poligono)
+      - Camera
+      - Gate
+      - Balanca
+      - Escaner
+    TipoModal:
+      type: string
+      description: Sigla do modal
+      enum:
+      - Ferroviario
+      - Rodoviario
+      - Aereo
+      - Maritimo
+    RespostaPadrao:
+      type: object
+      properties:
+        title:
+          type: string
+        detail:
+          type: string
+          description: Mensagem de erro ou hash do evento transmitido
+        status:
+          type: integer
+          description: HTTP Status code
+    Anexos:
+      type: object
+      properties:
+        nomearquivo:
+          type: string
+        datacriacao:
+          type: string
+          description: Data e Hora da criacao do arquivo
+          format: date-time
+        datamodificacao:
+          type: string
+          description: Data e Hora da ultima modificacao do arquivo
+          format: date-time
+        contentType:
+          type: string
+        content:
+          type: string
+    Evento:
+      type: object
+      properties:
+        IDEvento:
+          type: integer
+          description: ID do Evento no sistema original, para referencia e consulta
+        dataevento:
+          type: string
+          description: Data de ocorrência física do evento
+          format: date-time
+        operadorevento:
+          type: string
+          description: CPF do Operador que realizou o evento fisicamente/presencialmente
+        dataregistro:
+          type: string
+          description: Data de registro do evento no Sistema
+          format: date-time
+        operadorregistro:
+          type: string
+          description: CPF do Operador que registrou o evento no Sistema
+        retificador:
+          type: boolean
+          description: Retifica evento anteriormente transmitido
+    CredenciamentoPessoa:
+      allOf:
+      - $ref: '#/components/schemas/Evento'
+      - type: object
+        properties:
+          cpf:
+            type: string
+            description: CPF da Pessoa credenciada
+          identidade:
+            type: string
+            description: RG ou Identidade do estrangeiro
+          cnh:
+            type: string
+            description: Numero do CNH (para motoristas)
+          nome:
+            type: string
+            description: Nome da Pessoa credenciada
+          datanascimento:
+            type: string
+            description: Data de nascimento
+            format: date
+          fotos:
+            type: array
+            items:
+              $ref: '#/components/schemas/Anexos'
+          cpfcnpjrepresentado:
+            type: string
+            description: CNPJ/CPF representado
+          nomerepresentado:
+            type: string
+            description: Nome representado
+          funcao:
+            type: string
+            description: Função na empresa representada
+          iniciovalidade:
+            type: string
+            description: Início Período de validade do credenciamento
+            format: date-time
+          fimvalidade:
+            type: string
+            description: Fim Período de validade do credenciamento
+            format: date-time
+          horaentrada:
+            type: integer
+            description: Hora comum de entrada
+          horasaida:
+            type: integer
+            description: Hora comum de saida
+          permissao:
+            type: string
+            description: Areas permitidas acesso
+          materiais:
+            type: string
+            description: Lista materiais/ferramentas de trabalho
+          motivacao:
+            type: string
+            description: Motivacao de acesso ao terminal
+    AtivacaoCredenciamentoPessoa:
+      allOf:
+      - $ref: '#/components/schemas/Evento'
+      - type: object
+        properties:
+          status:
+            type: boolean
+            description: Informa se cadastro passa a estar ativo (Verdadeiro-True) ou inativo (Falso-False)
+          ideventocredenciamento:
+            type: integer
+            description: ID do Evento de credenciamento a modificar
+    AcessoPessoa:
+      allOf:
+      - $ref: '#/components/schemas/Evento'
+      - type: object
+        properties:
+          direcao:
+            $ref: '#/components/schemas/EntradaSaida'
+          formaidentificacao:
+            $ref: '#/components/schemas/FormaIdentificacao'
+          cpf:
+            type: string
+            description: CPF da Pessoa credenciada
+          identidade:
+            type: string
+            description: RG ou Identidade do estrangeiro
+          portaoacesso:
+            type: string
+            description: Codigo do portao utilizado para entrada
+          reserva:
+            type: string
+            description: Reserva
+          numerovoo:
+            type: string
+            description: Numero do voo
+    CredenciamentoVeiculo:
+      allOf:
+      - $ref: '#/components/schemas/Evento'
+      - type: object
+        properties:
+          cpfcnpjresponsavel:
+            type: string
+            description: CNPJ do responsavel pelo veiculo
+          placa:
+            type: string
+            description: Placa Cavalo-trator/truck/automóvel
+          reboques:
+            type: array
+            items:
+              type: object
+              properties:
+                placa:
+                  type: string
+          fotos:
+            type: array
+            items:
+              $ref: '#/components/schemas/Anexos'
+          marca:
+            type: string
+            description: Marca
+          modelo:
+            type: string
+            description: Modelo
+          ano:
+            type: string
+            description: Ano
+          geolocalizacao:
+            type: boolean
+            description: Verdadeiro para veículo com monitoramento de posição via
+              satélite ou similar
+          iniciovalidade:
+            type: string
+            description: Início Período de validade do credenciamento
+            format: date-time
+          fimvalidade:
+            type: string
+            description: Fim Período de validade do credenciamento
+            format: date-time
+          horaentrada:
+            type: integer
+            description: Hora comum de entrada
+          horasaida:
+            type: integer
+            description: Hora comum de saida
+          permissao:
+            type: string
+            description: Areas permitidas acesso
+          motivacao:
+            type: string
+            description: Areas permitidas acesso
+    AgendamentoAcessoVeiculo:
+      allOf:
+      - $ref: '#/components/schemas/Evento'
+      - type: object
+        properties:
+          tipooperacao:
+            $ref: '#/components/schemas/EntradaSaida'
+          documentotransporte:
+            type: string
+            description: Numero do documento de transporte
+          tipodocumentotransporte:
+            $ref: '#/components/schemas/TipoDocumentoTransporte'
+          placa:
+            type: string
+            description: Placa Cavalo-trator/truck/automóvel
+          dimensaoespecial:
+            type: boolean
+            description: Dimensoes que impecam entrada comum ou escaneamento(OOG)
+          pesoespecial:
+            type: boolean
+            description: Peso que impeca entrada comum ou escaneamento(OOG)
+          listanfe:
+            type: array
+            items:
+              type: object
+              properties:
+                chavenfe:
+                  type: string
+          reboques:
+            type: array
+            items:
+              type: object
+              properties:
+                placa:
+                  type: string
+                vazio:
+                  type: boolean
+                lacres:
+                  type: string
+                lacressif:
+                  type: string
+                localsif:
+                  type: string
+                cnpjestadia:
+                  type: string
+                nomeestadia:
+                  type: string
+          conteineres:
+            type: array
+            items:
+              type: object
+              properties:
+                numero:
+                  type: string
+                vazio:
+                  type: boolean
+                lacres:
+                  type: string
+                lacressif:
+                  type: string
+                localsif:
+                  type: string
+                portodescarga:
+                  type: string
+                paisdestino:
+                  type: string
+                  description: Pais destino da carga
+                navioembarque:
+                  type: string
+                cpfcnpjcliente:
+                  type: string
+                nomecliente:
+                  type: string
+          cpfcnpjtransportador:
+            type: string
+            description: CPF ou CNPJ do Transportador responsável
+          nometransportador:
+            type: string
+            description: Nome do Transportador responsável
+          cpfmotorista:
+            type: string
+            description: CPF do Motorista
+          nomemotorista:
+            type: string
+            description: Nome do Motorista
+          dataagendamento:
+            type: string
+            description: Data e Hora agendada
+            format: date-time
+          modal:
+            $ref: '#/components/schemas/TipoModal'
+          areasacesso:
+            type: string
+            description: Areas a que veiculo tera acesso
+    AcessoVeiculo:
+      allOf:
+      - $ref: '#/components/schemas/Evento'
+      - type: object
+        properties:
+          tipooperacao:
+            $ref: '#/components/schemas/EntradaSaida'
+          IDAgendamento:
+            type: integer
+            description: ID do Agendamento desta operação, se houver
+          IDGate:
+            type: string
+            description: Identificador do Portao de ocorrencia do Evento
+          documentotransporte:
+            type: string
+            description: Numero do conteiner
+          tipodocumentotransporte:
+            $ref: '#/components/schemas/TipoDocumentoTransporte'
+          placa:
+            type: string
+            description: Placa Cavalo-trator/truck/automóvel
+          dimensaoespecial:
+            type: boolean
+            description: Dimensoes que impecam entrada comum ou escaneamento(OOG)
+          pesoespecial:
+            type: boolean
+            description: Peso que impeca entrada comum ou escaneamento(OOG)
+          listanfe:
+            type: array
+            items:
+              type: object
+              properties:
+                chavenfe:
+                  type: string
+          reboques:
+            type: array
+            items:
+              type: object
+              properties:
+                placa:
+                  type: string
+                vazio:
+                  type: boolean
+                lacres:
+                  type: string
+                lacressif:
+                  type: string
+                localsif:
+                  type: string
+                cnpjestadia:
+                  type: string
+                nomeestadia:
+                  type: string
+                lacresverificados:
+                  type: string
+                lacressifverificados:
+                  type: string
+                avarias:
+                  type: string
+          conteineres:
+            type: array
+            items:
+              type: object
+              properties:
+                numero:
+                  type: string
+                vazio:
+                  type: boolean
+                lacres:
+                  type: string
+                lacressif:
+                  type: string
+                localsif:
+                  type: string
+                portodescarga:
+                  type: string
+                paisdestino:
+                  type: string
+                  description: Pais destino da carga
+                navioembarque:
+                  type: string
+                cpfcnpjcliente:
+                  type: string
+                nomecliente:
+                  type: string
+                numerobooking:
+                  type: string
+                lacresverificados:
+                  type: string
+                lacressifverificados:
+                  type: string
+                avarias:
+                  type: string
+          cpfcnpjtransportador:
+            type: string
+            description: CPF ou CNPJ do Transportador responsável
+          nometransportador:
+            type: string
+            description: Nome do Transportador responsável
+          cpfmotorista:
+            type: string
+            description: CPF do Motorista
+          nomemotorista:
+            type: string
+            description: Nome do Motorista
+          modal:
+            $ref: '#/components/schemas/TipoModal'
+          ocr:
+            type: boolean
+            description: Captura automática de placa (OCR)
+          dataliberacao:
+            type: string
+            description: Data e hora da comunicação de liberação da carga pelo recinto
+              (apenas na saída)
+            format: date-time
+    CoordenadaArtefato:
+      type: object
+      properties:
+        ordem:
+          type: integer
+          description: Sequencia para desenhar poligono
+        lat:
+          type: number
+          description: Latitude
+        long:
+          type: number
+          description: Longitude
+    ArtefatoRecinto:
+      allOf:
+      - $ref: '#/components/schemas/Evento'
+      - type: object
+        properties:
+          codigo:
+            type: string
+            description: Codigo que identifica o artefato no Recinto
+          tipoartefato:
+            $ref: '#/components/schemas/TipoArtefato'
+          coordenadasartefato:
+            type: array
+            items:
+              $ref: '#/components/schemas/CoordenadaArtefato'
+    AgendamentoConferencia:
+      allOf:
+      - $ref: '#/components/schemas/Evento'
+      - type: object
+        properties:
+          documentotransporte:
+            type: string
+            description: Numero do documento de transporte
+          tipodocumentotransporte:
+            $ref: '#/components/schemas/TipoDocumentoTransporte'
+          numero:
+            type: string
+            description: Numero do conteiner
+          placa:
+            type: string
+            description: Placa do caminhao/truck/cavalo
+          placasemireboque:
+            type: string
+            description: Placa semireboque em caso de carga em carreta
+          dataagendamento:
+            type: string
+            description: Data marcada para a conferencia
+            format: date-time
+          artefato:
+            type: string
+            description: Codigo que identifica o artefato no Recinto
+          local:
+            type: string
+            description: Descricao do local no Recinto
+    InformacaoBloqueio:
+      allOf:
+      - $ref: '#/components/schemas/Evento'
+      - type: object
+        properties:
+          documentotransporte:
+            type: string
+            description: Numero do documento de transporte
+          tipodocumentotransporte:
+            $ref: '#/components/schemas/TipoDocumentoTransporte'
+          numero:
+            type: string
+            description: Numero do conteiner
+          placa:
+            type: string
+            description: Placa do caminhao/truck/cavalo
+          motivo:
+            type: string
+            description: Codigo que identifica o artefato no Recinto
+          tipobloqueio:
+            type: string
+            description: Sigla que identifica o tipo de bloqueio
+          solicitante:
+            $ref: '#/components/schemas/Autoridade'
+    Ocorrencia:
+      allOf:
+      - $ref: '#/components/schemas/Evento'
+      - type: object
+        properties:
+          tipoartefato:
+            $ref: '#/components/schemas/TipoArtefato'
+          codigo:
+            type: string
+            description: Codigo que identifica o artefato no Recinto
+          disponivel:
+            type: boolean
+            description: Recurso disponivel ou indisponivel
+          motivo:
+            type: string
+            description: Motivo da indisponibilidade
+    PesagemVeiculoVazio:
+      allOf:
+      - $ref: '#/components/schemas/Evento'
+      - type: object
+        properties:
+          placa:
+            type: string
+            description: Placa do caminhao/truck/cavalo
+          reboques:
+            type: array
+            items:
+              type: object
+              properties:
+                placa:
+                  type: string
+          pesobalanca:
+            type: integer
+            description: Peso bruto da balanca
+    PesagemMaritimo:
+      allOf:
+      - $ref: '#/components/schemas/Evento'
+      - type: object
+        properties:
+          documentotransporte:
+            type: string
+            description: Numero do documento que embasa o Transporte
+          tipodocumentotransporte:
+            $ref: '#/components/schemas/TipoDocumentoTransporte'
+          numero:
+            type: string
+            description: Numero do conteiner maritimo ou do ULD aereo
+          placa:
+            type: string
+            description: Placa do caminhao/truck/cavalo
+          placasemireboque:
+            type: string
+            description: Placa semireboque em caso de carregamento
+          pesobrutodeclarado:
+            type: integer
+            description: Peso bruto declarado nos documentos de transporte em kg
+          taraconjunto:
+            type: integer
+            description: Peso do conjunto cavalo-carreta retirado da balanca e cadastrado no Recinto
+          pesobalanca:
+            type: integer
+            description: Peso do conjunto cavalo-carreta-carga retirado da balanca
+          capturaautomatica:
+            type: boolean
+            description: Captura realizada automaticamente pela balanca, sem intervencao manual ou digitacao
+    PesagemTerrestre:
+      allOf:
+      - $ref: '#/components/schemas/Evento'
+      - type: object
+        properties:
+          documentotransporte:
+            type: string
+            description: Numero do conteiner
+          tipodocumentotransporte:
+            $ref: '#/components/schemas/TipoDocumentoTransporte'
+          pesobrutodeclarado:
+            type: integer
+            description: Peso bruto declarado nos documentos de transporte em kg
+          placa:
+            type: string
+            description: Placa do caminhao/truck/cavalo
+          tara:
+            type: integer
+            description: Tara do caminhao/truck/cavalo
+          reboques:
+            type: array
+            items:
+              type: object
+              properties:
+                placa:
+                  type: string
+                tara:
+                  type: integer
+          conteineres:
+            type: array
+            items:
+              type: object
+              properties:
+                numero:
+                  type: string
+                tara:
+                  type: integer
+          pesobalanca:
+            type: integer
+            description: Peso do conjunto cavalo-carreta-carga retirado da balanca
+          capturaautomatica:
+            type: boolean
+            description: Captura realizada automaticamente pela balanca, sem intervencao manual ou digitacao
+    InspecaonaoInvasiva:
+      allOf:
+      - $ref: '#/components/schemas/Evento'
+      - type: object
+        properties:
+          documentotransporte:
+            type: string
+            description: Numero do documento de transporte
+          tipodocumentotransporte:
+            $ref: '#/components/schemas/TipoDocumentoTransporte'
+          identificadores:
+            type: array
+            items:
+              type: object
+              properties:
+                identificador:
+                  type: string
+          numero:
+            type: string
+            description: Numero do conteiner
+          placa:
+            type: string
+            description: Placa do caminhao/truck/cavalo
+          placasemireboque:
+            type: string
+            description: Placa semireboque em caso de carregamento
+          capturaautomatica:
+            type: boolean
+            description: Captura realizada automaticamente pelo OCR, sem intervencao manual ou digitacao
+          anexos:
+            type: array
+            description: Arquivos de imagem de inspecao nao invasiva ou arquivos texto (XML, JSON, etc) gerados pelo equipamento
+            items:
+              $ref: '#/components/schemas/Anexos'
+    PosicaoVeiculoPatio:
+      allOf:
+      - $ref: '#/components/schemas/Evento'
+      - type: object
+        properties:
+          documentotransporte:
+            type: string
+            description: Numero do conteiner
+          tipodocumentotransporte:
+            $ref: '#/components/schemas/TipoDocumentoTransporte'
+          placa:
+            type: string
+            description: Placa do caminhao/truck/cavalo ou chassi(veiculo-mercadoria)
+          reboques:
+            type: array
+            items:
+              type: object
+              properties:
+                placa:
+                  type: string
+                vazio:
+                  type: boolean
+          conteineres:
+            type: array
+            items:
+              type: object
+              properties:
+                numero:
+                  type: string
+                vazio:
+                  type: boolean
+          box:
+            type: string
+            description: Codigo do box
+          solicitante:
+            $ref: '#/components/schemas/Autoridade'
+          emconferencia:
+            type: boolean
+            description: Posicao propria para desunitizacao ou conferencia
+          divergencia:
+            type: boolean
+            description: Tem divergencia
+          observacaodivergencia:
+            type: string
+          camera:
+            type: string
+            description: Codigo da camera
+    PosicaoConteiner:
+      allOf:
+      - $ref: '#/components/schemas/Evento'
+      - type: object
+        properties:
+          numero:
+            type: string
+            description: Numero do conteiner
+          placa:
+            type: string
+            description: Placa semireboque em caso de carregamento
+          posicao:
+            type: string
+            description: Codigo que identifica a pilha no recinto
+          emconferencia:
+            type: boolean
+            description: Posicao propria para desunitizacao ou conferencia
+          solicitante:
+            $ref: '#/components/schemas/Autoridade'
+    FiltroNovoEvento:
+      type: object
+      properties:
+        IDEvento:
+          type: integer
+          description: IDEvento a partir do qual pesquisar (maior que) OU
+        recinto:
+          type: string
+          description: Codigo do Recinto a pesquisar
+        tipoevento:
+          type: string
+          description: Nome da classe de Evento
+        datainicial:
+          type: string
+          description: Data de ocorrência física do evento - inicio de pesquisa
+          format: date-time
+        datafinal:
+          type: string
+          description: Data de ocorrência física do evento - final de pesquisa
+          format: date-time
+    FiltroEvento:
+      type: object
+      properties:
+        recinto:
+          type: string
+          description: Codigo do Recinto a pesquisar
+        tipoevento:
+          type: string
+          description: Nome da classe de Evento
+        datainicial:
+          type: string
+          description: Data de ocorrência física do evento - inicio de pesquisa
+          format: date-time
+        datafinal:
+          type: string
+          description: Data de ocorrência física do evento - final de pesquisa
+          format: date-time
+    FiltroPosicaoConteiner:
+      type: object
+      properties:
+        recinto:
+          type: string
+          description: Codigo do Recinto a pesquisar
+        datainicial:
+          type: string
+          description: Data de ocorrência física do evento - inicio de pesquisa
+          format: date-time
+        datafinal:
+          type: string
+          description: Data de ocorrência física do evento - final de pesquisa
+          format: date-time
+        altura:
+          type: integer
+          description: Altura do conteiner na pilha
+    ArrayEventoBase:
+      type: array
+      items:
+        $ref: '#/components/schemas/Evento'
+    ArrayPosicaoConteiner:
+      type: array
+      items:
+        $ref: '#/components/schemas/PosicaoConteiner'
+    LoteDesunitizacao:
+      properties:
+        numerolote:
+          type: string
+          description: Numero de lote - numero gerado no sistema de controle do recinto
+        documentodesconsolidacao:
+          type: string
+          description: Numero do documento de transporte
+        tipodocumentodesconsolidacao:
+          $ref: '#/components/schemas/TipoDocumentoDesconsolidacao'
+        documentopapel:
+          type: string
+          description: Numero de documento papel fornecido por agente ou transportadora
+        tipodocumentopapel:
+          $ref: '#/components/schemas/TipoDocumentoPapel'
+        pesolote:
+          type: integer
+          description: Peso total aferido do Lote desunitizado
+        qtdevolumes:
+          type: integer
+          description: Quantidade de volumes de armazenagem do lote
+        tipovolume:
+          $ref: '#/components/schemas/TipoVolume'
+        marca:
+          type: string
+          description: Marcas em embalagens, mercadoria ou etiquetas que identificam o lote e contramarca
+        acrescimo:
+          type: boolean
+          description: Indica se este e um lote de acrescimo (informar falta total nos campos de falta)
+        falta:
+          type: boolean
+          description: Indica se foi identificada falta de volumes
+        qtdefalta:
+          type: integer
+          description: Quantidade de volumes faltantes
+        observacoes:
+          type: string
+          description: Campo para observacoes adicionais
+    Desunitizacao:
+      allOf:
+      - $ref: '#/components/schemas/Evento'
+      - type: object
+        properties:
+          documentotransporte:
+            type: string
+            description: Numero do documento de transporte
+          tipodocumentotransporte:
+            $ref: '#/components/schemas/TipoDocumentoTransporte'
+          numero:
+            type: string
+            description: Numero do conteiner maritimo ou do ULD aereo
+          placa:
+            type: string
+            description: Placa do caminhao/truck/cavalo
+          placasemireboque:
+            type: string
+            description: Placa semireboque em caso de carga em carreta
+          lotes:
+            type: array
+            description: Arquivos de imagem de inspecao nao invasiva
+            items:
+              $ref: '#/components/schemas/LoteDesunitizacao'
+          imagens:
+            type: array
+            description: Arquivos de imagem de inspecao nao invasiva
+            items:
+              $ref: '#/components/schemas/Anexos'
+    PosicaoLote:
+      allOf:
+      - $ref: '#/components/schemas/Evento'
+      - type: object
+        properties:
+          numerolote:
+            type: integer
+            description: Numero de lote - numero gerado no sistema de controle do recinto
+          qtdevolumes:
+            type: string
+            description: Quantidade de volumes na posicao
+          posicao:
+            type: string
+            description: Codigo que identifica no recinto a posicao de armazenamento
+    UnitizacaoLote:
+      allOf:
+      - $ref: '#/components/schemas/Evento'
+      - type: object
+        properties:
+          documentotransporte:
+            type: string
+            description: Numero do documento de transporte
+          tipodocumentotransporte:
+            $ref: '#/components/schemas/TipoDocumentoTransporte'
+          placa:
+            type: string
+            description: Placa do caminhao/truck/cavalo
+          placasemireboque:
+            type: string
+            description: Placa semireboque em caso de carga em carreta
+          numero:
+            type: string
+            description: Numero do conteiner
+          lotes:
+            type: array
+            description: Arquivos de imagem de inspecao nao invasiva
+            items:
+              type: object
+              properties:
+                numerolote:
+                  type: string
+                  description: Numero de lote - numero gerado no sistema de controle do recinto
+                qtdevolumes:
+                  type: integer
+                  description: Quantidade de volumes na posicao
+          imagens:
+            type: array
+            description: Arquivos de imagem de inspecao nao invasiva
+            items:
+              $ref: '#/components/schemas/Anexos'
+    AvariaLote:
+      allOf:
+      - $ref: '#/components/schemas/Evento'
+      - type: object
+        properties:
+          numerolote:
+            type: string
+            description: Numero de lote - numero gerado no sistema de controle do recinto
+          qtdevolumes:
+            type: integer
+            description: Quantidade de volumes na posicao
+          descricaoavaria:
+            type: string
+            description: Descricao da ocorrencia e extensao da avaria
+    DTSC:
+      allOf:
+      - $ref: '#/components/schemas/Evento'
+      - type: object
+        properties:
+          dataoperacao:
+            type: string
+            description: Data e hora prevista da atracacao
+            format: date-time
+          imonavio:
+            type: string
+            description: IMO Navio
+          viagem:
+            type: string
+            description: Viagem Navio - Escala Siscomex CARGA
+          cargas:
+            type: array
+            description: Lista de cargas DTSC
+            items:
+              type: object
+              properties:
+                documentotransporte:
+                  type: string
+                  description: Numero do documento de transporte
+                tipodocumentotransporte:
+                  $ref: '#/components/schemas/TipoDocumentoTransporte'
+                numero:
+                  type: string
+                  description: Numero do conteiner
+                codigorecinto:
+                  type: string
+                  description: Codigo do recinto de destino
+                placa:
+                  type: string
+                  description: Placa do caminhao/truck/cavalo
+                placasemireboque:
+                  type: string
+                  description: Placa semireboque em caso de carga em carreta
+                cpfcnpjtransportador:
+                  type: string
+                  description: CPF ou CNPJ do Transportador responsável
+                cpfcnpjproprietario:
+                  type: string
+                  description: CPF ou CNPJ do Importador ou Exportador
+    OperacaoNavio:
+      allOf:
+        - $ref: '#/components/schemas/Evento'
+        - type: object
+          properties:
+            direcao:
+              $ref: '#/components/schemas/TipoOperacaoNavio'
+            imonavio:
+              type: string
+              description: IMO Navio
+            viagem:
+              type: string
+              description:  Viagem Navio - Escala Siscomex CARGA
+            numero:
+              type: string
+              description: Numero do conteiner
+            pesomanifestado:
+              type: integer
+              description: Peso bruto do conteiner manifestado no plano do armador
+            pesovgm:
+              type: integer
+              description: Peso bruto do conteiner pesado no equipamento de operacao portuaria - Verified Gross Mass
+            posicao:
+              type: string
+              description: Posicao no navio
+            porto:
+              type: string
+              description: Sigla do porto de origem ou de destino
+    CadastroRepresentacao:
+      allOf:
+        - $ref: '#/components/schemas/Evento'
+        - type: object
+          properties:
+            cpfrepresentante:
+              type: string
+              description: CPF ou CNPJ do Representante
+            cpfcnpjrepresentado:
+              type: string
+              description: CPF ou CNPJ do Representado
+            inicio:
+              type: string
+              description: Data e Hora de inicio da Validade
+              format: date-time
+            fim:
+              type: string
+              description: Data e Hora de fim da Validade
+              format: date-time
