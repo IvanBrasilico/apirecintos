@@ -158,30 +158,6 @@ def site(path):
     return send_from_directory('site', path)
 
 
-def get_private_key():
-    recinto = request.json.get('recinto')
-    try:
-        private_key_pem, assinado = UseCases.gera_chaves_recinto(
-            current_app.config['db_session'],
-            recinto
-        )
-        return jsonify({'pem': private_key_pem.decode('utf-8'),
-                        'assinado': b85encode(assinado).decode('utf-8')}), 200
-    except Exception as err:
-        logging.error(err, exc_info=True)
-        return jsonify(_response(err, 400)), 400
-
-
-def recriatedb():  # pragma: no cover
-    # db_session = current_app.config['db_session']
-    engine = current_app.config['engine']
-    try:
-        orm.Base.metadata.drop_all(bind=engine)
-        orm.Base.metadata.create_all(bind=engine)
-    except Exception as err:
-        return jsonify(_response(err, 405)), 405
-    return jsonify(_response('Banco recriado!!!', 201)), 201
-
 
 def create_views(app):
     UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'files')
@@ -194,7 +170,4 @@ def create_views(app):
     app.add_url_rule('/eventosnovos/get', 'geteventosnovos', geteventosnovos)
     app.add_url_rule('/eventosnovos/upload', 'seteventosnovos',
                      seteventosnovos, methods=['POST'])
-    app.add_url_rule('/privatekey', 'get_private_key',
-                     get_private_key, methods=['POST'])
     app.add_url_rule('/site/<path:path>', 'site', site)
-    app.add_url_rule('/recriatedb', 'recriatedb', recriatedb)

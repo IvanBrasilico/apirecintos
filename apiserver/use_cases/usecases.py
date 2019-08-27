@@ -4,29 +4,10 @@ from zipfile import ZipFile
 
 from sqlalchemy.orm import load_only
 
-import assinador
 from apiserver.models import orm
 
 
 class UseCases:
-    @classmethod
-    def gera_chaves_recinto(cls, db_session, recinto: str) -> (bytes, bytes):
-        """Chama gerador de chaves, armazena chave publica, retorna chave privada.
-
-        :param db_session: Conexão ao BD
-        :param recinto: codigo do recinto
-        :return: chave privada gerada em bytes, recinto assinado em bytes
-        """
-        private_key, public_key = assinador.generate_keys()
-        assinado = assinador.sign(recinto.encode('utf-8'), private_key)
-        public_pem = assinador.public_bytes(public_key)
-        orm.ChavePublicaRecinto.set_public_key(db_session, recinto, public_pem)
-        private_pem = assinador.private_bytes(private_key)
-        return private_pem, assinado
-
-    @classmethod
-    def get_public_key(cls, db_session, recinto):
-        return orm.ChavePublicaRecinto.get_public_key(db_session, recinto)
 
     def __init__(self, db_session, recinto: str, request_IP: str, basepath: str):
         """Init
@@ -42,9 +23,6 @@ class UseCases:
         self.basepath = basepath
         self.eventos_com_filhos = {
             orm.InspecaonaoInvasiva: self.load_inspecaonaoinvasiva,
-            orm.AgendamentoAcessoVeiculo: self.load_agendamentoacessoveiculo,
-            orm.CredenciamentoPessoa: self.load_credenciamentopessoa,
-            orm.CredenciamentoVeiculo: self.load_credenciamentoveiculo,
         }
 
     def allowed_file(self, filename, extensions):
@@ -263,166 +241,6 @@ class UseCases:
                     identificador.dump(exclude=['ID', 'inspecao', 'inspecao_id'])
                 )
         return inspecaonaoinvasiva_dump
-
-    def insert_agendamentoacessoveiculo(self, evento: dict
-                                        ) -> orm.AgendamentoAcessoVeiculo:
-        logging.info('Creating agendamentoacessoveiculo %s..',
-                     evento.get('IDEvento'))
-        agendamentoacessoveiculo = self.insert_evento(
-            orm.AgendamentoAcessoVeiculo, evento,
-            commit=False)
-        conteineres = evento.get('conteineres', [])
-        for conteiner in conteineres:
-            logging.info('Creating conteinergateagendamento %s..',
-                         conteiner.get('numero'))
-            oconteiner = orm.ConteineresGateAgendado(
-                agendamentoacessoveiculo=agendamentoacessoveiculo,
-                **conteiner)
-            self.db_session.add(oconteiner)
-        reboques = evento.get('reboques', [])
-        for reboque in reboques:
-            logging.info('Creating reboquegateagendamento %s..',
-                         reboque.get('identificador'))
-            oreboque = orm.ReboquesGateAgendado(
-                agendamentoacessoveiculo=agendamentoacessoveiculo,
-                **reboque)
-            self.db_session.add(oreboque)
-        self.db_session.commit()
-        return agendamentoacessoveiculo
-
-    def load_agendamentoacessoveiculo(self, IDEvento: int
-                                      ) -> orm.AgendamentoAcessoVeiculo:
-        """
-        Retorna AgendamentoAcessoVeiculo encontrada única no filtro recinto E IDEvento.
-
-        :param IDEvento: ID do Evento informado pelo recinto
-        :return: instância objeto orm.AgendamentoAcessoVeiculo
-        """
-        agendamento = orm.AgendamentoAcessoVeiculo.query.filter(
-            orm.AgendamentoAcessoVeiculo.IDEvento == IDEvento,
-            orm.AgendamentoAcessoVeiculo.recinto == self.recinto
-        ).outerjoin(
-            orm.ConteineresGateAgendado
-        ).outerjoin(
-            orm.ReboquesGateAgendado
-        ).one()
-        agendamentoacessoveiculo_dump = agendamento.dump()
-        agendamentoacessoveiculo_dump['hash'] = hash(agendamento)
-        if agendamento.conteineres and len(agendamento.conteineres) > 0:
-            agendamentoacessoveiculo_dump['conteineres'] = []
-            for conteiner in agendamento.conteineres:
-                agendamentoacessoveiculo_dump['conteineres'].append(
-                    conteiner.dump(
-                        exclude=['ID', 'agendamentoacessoveiculo',
-                                 'agendamentoacessoveiculo_id'])
-                )
-        agendamentoacessoveiculo_dump['reboques'] = self.get_filhos(
-            agendamento.reboques,
-            campos_excluidos=['ID', 'agendamentoacessoveiculo',
-                              'agendamentoacessoveiculo_id']
-        )
-        """
-        if agendamento.reboques and \
-                len(agendamento.reboques) > 0:
-            agendamentoacessoveiculo_dump['reboques'] = []
-            for reboque in agendamento.reboques:
-                agendamentoacessoveiculo_dump['reboques'].append(
-                    reboque.dump(
-                        exclude=['ID', 'agendamentoacessoveiculo',
-                                 'agendamentoacessoveiculo_id'])
-                )
-        """
-        return agendamentoacessoveiculo_dump
-
-    def insert_credenciamentopessoa(self, evento: dict) -> orm.CredenciamentoPessoa:
-        """
-        Insere CredenciamentoPessoa no Banco de Dados
-
-        :param evento: Dicionário contendo valores do JSON passado
-        :return: Objeto orm.CredenciamentoPessoa
-        """
-        logging.info('Creating credenciamentopessoa %s..',
-                     evento['IDEvento'])
-        credenciamentopessoa = self.insert_evento(
-            orm.CredenciamentoPessoa, evento,
-            commit=False)
-        fotos = evento.get('fotos', [])
-        self.insert_anexos(credenciamentopessoa, fotos,
-                           orm.FotoPessoa, 'credenciamentopessoa')
-        self.db_session.commit()
-        return credenciamentopessoa
-
-    def load_credenciamentopessoa(self, IDEvento):
-        """
-        Retorna CredenciamentoPessoa encontrado única no filtro recinto E IDEvento.
-
-        :param IDEvento: ID do Evento informado pelo recinto
-        :return: instância objeto orm.CredenciamentoPessoa
-        """
-        credenciamento = orm.CredenciamentoPessoa.query.filter(
-            orm.CredenciamentoPessoa.IDEvento == IDEvento,
-            orm.CredenciamentoPessoa.recinto == self.recinto
-        ).outerjoin(
-            orm.FotoPessoa
-        ).one()
-        credenciamentopessoa_dump = credenciamento.dump()
-        credenciamentopessoa_dump['hash'] = hash(credenciamento)
-        credenciamentopessoa_dump['fotos'] = self.get_anexos(
-            credenciamento.fotos,
-            campos_excluidos=['ID', 'credenciamentopessoa',
-                              'credenciamentopessoa_id']
-        )
-        return credenciamentopessoa_dump
-
-    def insert_credenciamentoveiculo(self, evento: dict) -> orm.CredenciamentoVeiculo:
-        """
-        Insere CredenciamentoVeiculo no Banco de Dados
-
-        :param evento: Dicionário contendo valores do JSON passado
-        :return: Objeto orm.CredenciamentoVeiculo
-        """
-        logging.info('Creating credenciamentoveiculo %s..',
-                     evento['IDEvento'])
-        credenciamentoveiculo = self.insert_evento(
-            orm.CredenciamentoVeiculo, evento,
-            commit=False)
-        fotos = evento.get('fotos', [])
-        self.insert_anexos(credenciamentoveiculo, fotos,
-                           orm.FotoVeiculo, 'credenciamentoveiculo')
-        reboques = evento.get('reboques', [])
-        self.insert_filhos(credenciamentoveiculo, reboques,
-                           orm.ReboquesVeiculo, 'credenciamentoveiculo')
-        self.db_session.commit()
-        return credenciamentoveiculo
-
-    def load_credenciamentoveiculo(self, IDEvento):
-        """
-        Retorna CredenciamentoVeiculo encontrado única no filtro recinto E IDEvento.
-
-        :param IDEvento: ID do Evento informado pelo recinto
-        :return: instância objeto orm.CredenciamentoVeiculo
-        """
-        credenciamento = orm.CredenciamentoVeiculo.query.filter(
-            orm.CredenciamentoVeiculo.IDEvento == IDEvento,
-            orm.CredenciamentoVeiculo.recinto == self.recinto
-        ).outerjoin(
-            orm.FotoVeiculo
-        ).outerjoin(
-            orm.ReboquesVeiculo
-        ).one()
-        credenciamentoveiculo_dump = credenciamento.dump()
-        credenciamentoveiculo_dump['hash'] = hash(credenciamento)
-        credenciamentoveiculo_dump['fotos'] = self.get_anexos(
-            credenciamento.fotos,
-            campos_excluidos=['ID', 'credenciamentoveiculo',
-                              'credenciamentoveiculo_id']
-        )
-        credenciamentoveiculo_dump['reboques'] = self.get_filhos(
-            credenciamento.reboques,
-            campos_excluidos=['ID', 'credenciamentoveiculo',
-                              'credenciamentoveiculo_id']
-        )
-        return credenciamentoveiculo_dump
 
     def load_arquivo_eventos(self, file):
         """Valida e carrega arquivo JSON de eventos."""

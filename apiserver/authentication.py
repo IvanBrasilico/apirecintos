@@ -9,9 +9,7 @@ from flask import request, jsonify, g, current_app
 from jose import JWTError, jwt
 from werkzeug.exceptions import Unauthorized
 
-import assinador
 from apiserver.api import _response
-from apiserver.models.orm import ChavePublicaRecinto
 
 
 def make_secret():
@@ -76,16 +74,6 @@ def recorta_token_header(headers):
     return token
 
 
-def valida_assinatura(decoded_token, assinado, db_session):
-    recinto = decoded_token.get('recinto')
-    if g:
-        g.recinto = recinto
-    assinado = b85decode(assinado.encode('utf-8'))
-    print('recinto: %s' % recinto)
-    print('assinado: %s' % assinado)
-    public_key_pem = ChavePublicaRecinto.get_public_key(db_session, recinto)
-    public_key = assinador.load_public_key(public_key_pem)
-    assinador.verify(assinado, recinto.encode('utf8'), public_key)
 
 
 def valida_token_e_assinatura(request, db_session=None) -> [bool, str]:
@@ -93,9 +81,6 @@ def valida_token_e_assinatura(request, db_session=None) -> [bool, str]:
 
     1. Retira token do header
     2. Decodifica token
-    3. Pega campo recinto e recupera chave publica do recinto do banco
-    4. Valida assinatura (campo assinado tem que estar no request e corresponder
-    ao codigo do recinto assinado com sua chave privada)
 
     :param request: Objeto request
     :param db_session: Conexão ao BD
@@ -110,17 +95,6 @@ def valida_token_e_assinatura(request, db_session=None) -> [bool, str]:
             db_session = current_app.config['db_session']
         # print(token)
         decoded_token = decode_token(token)
-        verify_sign = os.environ.get('VERIFY_SIGN', 'NO').lower() == 'yes'
-        if current_app and verify_sign:
-            assinado = request.json.get('assinado')
-            valida_assinatura(decoded_token, assinado, db_session)
-        else:
-            logging.warning(
-                'Sem verificação de assinatura digital! '
-                'Configure a variável de ambiente '
-                '($export VERIFY_SIGN=YES) para ativar.'
-            )
-
     except Exception as err:
         logging.error(err, exc_info=True)
         return False, str(err)
