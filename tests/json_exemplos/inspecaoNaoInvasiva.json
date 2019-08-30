@@ -1,0 +1,70 @@
+{
+	"dtHrTransmissao": "2019-08-07T13:36:51.809Z",
+	"codRecinto": "string",
+	"cnpjTransmissor": "string",
+	"ip": "string",
+	"hash": "string",
+	"idEvento": "string",
+	"dtHrOcorrencia": "2019-08-07T13:36:51.809Z",
+	"dtHrRegistro": "2019-08-07T13:36:51.809Z",
+	"cpfOperOcor": "string",
+	"cpfOperReg": "string",
+	"retificador": false,
+	"idEventoRetif": "string",
+	"contingencia": false,
+
+	"listaManifestos": [
+		{
+			"num": "string",
+			"tipo": "string",
+			"listaConhecimentos": [
+				{
+					"num": "string",
+					"tipo": "string"
+				}
+			 ]
+		 }
+	],
+	"listaCarga": ["string", "string"], 
+	"listaSemirreboque": [
+		{
+			"placa": "string",
+			"ocrPlaca": true
+		}
+	],
+	"listaConteineresUld": [
+		{
+			"num": "string",
+			"ocrNum": true
+		}
+	],
+	"imgScanner": [
+		{
+			"dtHrScaneamento": "2019-08-07T13:36:51.809Z",
+			"dtHrModifArquivo": "2019-08-07T13:36:51.809Z",
+			"nmArquivo": "string",
+			"tipoArquivo": "string",
+			"coordenadasAlerta": [
+				{
+					"x": 0,
+					"y": 0,
+					"x2": 0,
+					"y2": 0
+				}
+			], 
+			"img": "string"
+		}
+	], 
+	"anexos": [
+		{
+			"datacriacao": "2019-08-07T13:36:51.810Z",
+			"datamodificacao": "2019-08-07T13:36:51.811Z",
+			"nomearquivo": "string",
+			"contentType": "string"
+		}
+	],
+	"idScanner": "id georreferenciamento 04.23",
+	"idCamera": "id georreferenciamento 04.23",
+	"placa": "string",
+	"ocrPlaca": true
+}
