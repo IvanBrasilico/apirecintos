@@ -19,7 +19,6 @@ def random_str(num, fila):
 
 db_session = None
 engine = None
-testes = None
 cadastros = None
 
 
@@ -30,11 +29,7 @@ def create_session():
     if db_session is None:
         print('Creating memory database')
         db_session, engine = orm.init_db('sqlite:///:memory:')
-        with open(os.path.join(os.path.dirname(__file__),
-                               'testes.json'), 'r') as json_in:
-            testes = json.load(json_in)
-    return db_session, engine, testes, cadastros
-
+    return db_session, engine
 
 def extractDictAFromB(A, B):
     return dict([(k, B[k]) for k in A.keys() if k in B.keys()])
@@ -50,7 +45,7 @@ class BaseTestCase(TestCase):
 
 
     def setUp(self):
-        self.db_session, self.engine, self.testes, self.cadastros = create_session()
+        self.db_session, self.engine = create_session()
         orm.Base.metadata.create_all(bind=self.engine)
         self.recinto = '00001'
         self.assinado = ''

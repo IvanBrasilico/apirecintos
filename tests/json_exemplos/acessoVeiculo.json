@@ -1,46 +1,34 @@
 {
 	"dtHrTransmissao": "2019-08-07T13:36:51.809Z",
-	"codRecinto": 0,
-	"cnpjTransmissor": 0,
+	"codRecinto": "0",
+	"cnpjTransmissor": "0",
 	"ip": "string",
 	"hash": "string",
 	
 	"idEvento": "string",
 	"dtHrOcorrencia": "2019-08-07T13:36:51.809Z",
 	"dtHrRegistro": "2019-08-07T13:36:51.809Z",
-	"cpfOperOcor": 0,
-	"cpfOperReg": 0,
+	"cpfOperOcor": "0",
+	"cpfOperReg": "0",
 	"retificador": false,
 	"idEventoRetif": "string",
 	"contingencia": false,
 	
 	"direcao": "E", 
 	"idAgendamento": "string",
-	"listaManifestos": [
-		{
-			"num": "string",
-			"tipo": "string",
-			"listaConhecimentos": [
-				{
-					"num": "string",
-					"tipo": "string"
-				}
-			 ]
-		 }
-	],
-	"listaDiDue": [
-		{
-			"num": "string",
-			"tipo": "string"
-		}
-	], 
-	"listaNfe": [0,0,0], 
 	"tipoGranel": "solido",
-	"listaChassi": ["string","string"],
 	"placa": "string",
 	"ocrPlaca": true,
 	"oogDimensao": false,
 	"oogPeso": false,
+	"cnpjTransportador": 0,
+	"nmTransportador": "string",
+	"cpfMotorista": 0,
+	"nmMotorista": "string",
+	"codRecintoDestino": 0,
+	"modal": "R", 		
+	"idGate": "id georreferenciamento 04.23",
+	"idCamera": "id georreferenciamento 04.23",
 	"listaSemirreboque": [
 		{
 			"placa": "string",
@@ -71,7 +59,7 @@
 					"tipo": "string",
 					"localSif": "string"
 				}
-			],		
+			],
 			"avaria": false,
 			"portoDescarga": "string",
 			"destinoCarga": "string",
@@ -80,12 +68,24 @@
 			"nmCliente": "string"
 		}
 	],
-	"cnpjTransportador": 0,
-	"nmTransportador": "string",
-	"CpfMotorista": 0,
-	"nmMotorista": "string",
-	"codRecintoDestino": 0,
-	"modal": "R", 		
-	"idGate": "id georreferenciamento 04.23",
-	"idCamera": "id georreferenciamento 04.23"
+	"listaManifestos": [
+		{
+			"num": "string",
+			"tipo": "string",
+			"listaConhecimentos": [
+				{
+					"num": "string",
+					"tipo": "string"
+				}
+			 ]
+		 }
+	],
+	"listaDiDue": [
+		{
+			"num": "string",
+			"tipo": "string"
+		}
+	],
+	"listaChassi": ["string","string"],
+	"listaNfe": [0,0,0]
 }

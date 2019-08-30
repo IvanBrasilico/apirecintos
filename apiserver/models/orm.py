@@ -123,7 +123,7 @@ class ReboquePesagemVeiculoCarga(BaseDumpable):
     tara = Column(Integer)
     pesagem_id = Column(Integer, ForeignKey('pesagensveiculocarga.ID'))
     pesagem = relationship(
-        'PesagemVeiculoCarga', backref=backref('reboques')
+        'PesagemVeiculoCarga', backref=backref('listaSemirreboque')
     )
 
 
@@ -278,7 +278,7 @@ class Semirreboque(BaseDumpable):
     ocrPlaca = Column(Boolean)
     inspecao_id = Column(Integer, ForeignKey('inspecoesnaoinvasivas.ID'))
     inspecao = relationship(
-        'InspecaonaoInvasiva', backref=backref('listaSemirreboques')
+        'InspecaonaoInvasiva', backref=backref('listaSemirreboque')
     )
 
 
@@ -302,58 +302,45 @@ class AcessoVeiculo(EventoBase):
     __tablename__ = 'acessosveiculo'
     __table_args__ = {'sqlite_autoincrement': True}
     ID = Column(Integer, primary_key=True)
-    IDAgendamento = Column(Integer)
-    IDGate = Column(String(20))
-    tipodocumentotransporte = Column(String(20))
-    documentotransporte = Column(String(20))
-    placa = Column(String(7))
-    ocr = Column(Boolean)
-    chassi = Column(String(30))
-    cpfmotorista = Column(String(11))
-    nomemotorista = Column(String(50))
-    cpfcnpjtransportador = Column(String(14))
-    nometransportador = Column(String(50))
+    direcao = Column(String(10))
+    idAgendamento = Column(Integer)
+    tipoGranel = Column(String)
+    placa = Column(String(8))
+    ocrPlaca = Column(Boolean)
+    CpfMotorista = Column(String(11))
+    nmMotorista = Column(String(50))
+    cnpjTransportador = Column(String(14))
+    nmTransportador = Column(String(50))
     modal = Column(String(20))
-    pesoespecial = Column(Boolean)
-    dimensaoespecial = Column(Boolean)
-    tipooperacao = Column(String(10))
-    dataliberacao = Column(DateTime)
-    dataagendamento = Column(DateTime)
+    oogPeso = Column(Boolean)
+    oogDimensao = Column(Boolean)
+    codRecintoDestino = Column(String)
+    # dataliberacao = Column(DateTime)
+    # dataagendamento = Column(DateTime)
 
     def __init__(self, **kwargs):
         superkwargs = dict([
             (k, v) for k, v in kwargs.items() if k in vars(EventoBase).keys()
         ])
         super().__init__(**superkwargs)
-        self.IDAgendamento = kwargs.get('IDAgendamento')
-        self.IDGate = kwargs.get('IDGate')
-        self.tipodocumentotransporte = kwargs.get('tipodocumentotransporte')
-        self.documentotransporte = kwargs.get('documentotransporte')
+        self.direcao = kwargs.get('direcao')
+        self.idAgendamento = kwargs.get('idAgendamento')
+        self.tipoGranel = kwargs.get('tipoGranel')
         self.placa = kwargs.get('placa')
-        self.ocr = kwargs.get('ocr')
-        self.chassi = kwargs.get('chassi')
-        self.cpfmotorista = kwargs.get('cpfmotorista')
-        self.nomemotorista = kwargs.get('nomemotorista')
-        self.cpfcnpjtransportador = kwargs.get('cpfcnpjtransportador')
-        self.nometransportador = kwargs.get('nometransportador')
+        self.ocrPlaca = kwargs.get('ocrPlaca')
+        self.cpfMotorista = kwargs.get('cpfMotorista')
+        self.nmMotorista = kwargs.get('nmMotorista')
+        self.cnpjTransportador = kwargs.get('cnpjTransportador')
+        self.nmTransportador = kwargs.get('nmTransportador')
         self.modal = kwargs.get('modal')
-        self.pesoespecial = kwargs.get('pesoespecial')
-        self.dimensaoespecial = kwargs.get('dimensaoespecial')
-        self.tipooperacao = kwargs.get('tipooperacao')
-        if kwargs.get('dataliberacao') is not None:
-            self.dataliberacao = parse(kwargs.get('dataliberacao'))
-        if kwargs.get('dataagendamento') is not None:
-            self.dataagendamento = parse(kwargs.get('dataagendamento'))
+        self.oogPeso = kwargs.get('oogPeso')
+        self.oogDimensao = kwargs.get('oogDimensao')
+        self.codRecintoDestino = kwargs.get('codRecintoDestino')
 
 
-class Gate(BaseDumpable):
-    __abstract__ = True
-    avarias = Column(String(50))
-    lacres = Column(String(50))
-    vazio = Column(Boolean())
 
 
-class ConteineresGate(Gate):
+class ConteineresGate(BaseDumpable):
     __tablename__ = 'conteineresgate'
     __table_args__ = {'sqlite_autoincrement': True}
     ID = Column(Integer, primary_key=True)
@@ -377,23 +364,25 @@ class ConteineresGate(Gate):
     )
 
 
-class ReboquesGate(Gate):
+class ReboquesGate(BaseDumpable):
     __tablename__ = 'reboquesgate'
     __table_args__ = {'sqlite_autoincrement': True}
     ID = Column(Integer, primary_key=True)
-    placa = Column(String(7))
-    vazio = Column(Boolean)
-    lacres = Column(String(30))
-    lacresverificados = Column(String(30))
-    localsif = Column(String(20))
-    lacressif = Column(String(30))
-    lacressifverificados = Column(String(30))
-    cnpjestadia = Column(String(14))
-    nomeestadia = Column(String(50))
-    avarias = Column(String(100))
+    placa = Column(String)
+    ocrPlaca = Column(Boolean())
+    vazio = Column(Boolean())
+    avaria = Column(Boolean())
+    cnpjCliente = Column(String(14))
+    nmCliente = Column(String(50))
+    # avarias = Column(String(50))
+    # lacres = Column(String(50))
+    # lacresverificados = Column(String(30))
+    # localsif = Column(String(20))
+    # lacressif = Column(String(30))
+    # lacressifverificados = Column(String(30))
     acessoveiculo_id = Column(Integer, ForeignKey('acessosveiculo.ID'))
     acessoveiculo = relationship(
-        'AcessoVeiculo', backref=backref('reboques')
+        'AcessoVeiculo', backref=backref('listaSemirreboque')
     )
 
 
@@ -417,8 +406,8 @@ def init_db(uri='sqlite:///test.db'):
         db_session = scoped_session(sessionmaker(autocommit=False, autoflush=False,
                                                  bind=engine))
         Base.query = db_session.query_property()
-        for table in ['pesagensterrestres', 'pesagensveiculosvazios',
-                      'acessosveiculo', 'pesagensmaritimo', 'inspecoesnaoinvasivas']:
+        for table in ['pesagensveiculocarga', 'acessosveiculo',
+                      'inspecoesnaoinvasivas']:
             # print(table)
             Table(table, Base.metadata,
                   Index(table + '_ideventorecinto_idx',

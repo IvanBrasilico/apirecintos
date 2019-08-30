@@ -266,11 +266,11 @@ class UseCases:
                 inspecaonaoinvasiva_dump['listaConteineresUld'].append(
                     conteiner.dump(exclude=['ID', 'inspecao', 'inspecao_id'])
                 )
-        if inspecaonaoinvasiva.listaSemirreboques and \
-                len(inspecaonaoinvasiva.listaSemirreboques) > 0:
-            inspecaonaoinvasiva_dump['listaSemirreboques'] = []
-            for semirreboque in inspecaonaoinvasiva.listaSemirreboques:
-                inspecaonaoinvasiva_dump['listaSemirreboques'].append(
+        if inspecaonaoinvasiva.listaSemirreboque and \
+                len(inspecaonaoinvasiva.listaSemirreboque) > 0:
+            inspecaonaoinvasiva_dump['listaSemirreboque'] = []
+            for semirreboque in inspecaonaoinvasiva.listaSemirreboque:
+                inspecaonaoinvasiva_dump['listaSemirreboque'].append(
                     semirreboque.dump(exclude=['ID', 'inspecao', 'inspecao_id'])
                 )
         if inspecaonaoinvasiva.listaManifestos and \
@@ -294,12 +294,13 @@ class UseCases:
 
     def insert_pesagemveiculocarga(self, evento: dict) -> orm.PesagemVeiculoCarga:
         logging.info('Creating PesagemVeiculoCarga %s..', evento.get('IDEvento'))
-        pesagemveiculocarga = self.insert_evento(orm.InspecaonaoInvasiva, evento,
+        pesagemveiculocarga = self.insert_evento(orm.PesagemVeiculoCarga, evento,
                                                  commit=False)
         listareboques = evento.get('listaSemirreboque', [])
         for reboque in listareboques:
             logging.info('Creating Semirreboque %s..',
                          reboque.get('placa'))
+            print(reboque)
             semirreboque = orm.ReboquePesagemVeiculoCarga(pesagem=pesagemveiculocarga,
                                               **reboque)
             self.db_session.add(semirreboque)
@@ -324,13 +325,57 @@ class UseCases:
             orm.ReboquePesagemVeiculoCarga
         ).one()
         pesagemveiculocarga_dump = pesagemveiculocarga.dump()
-        if pesagemveiculocarga.listaSemirreboques and \
-                len(pesagemveiculocarga.listaSemirreboques) > 0:
-            pesagemveiculocarga_dump['listaSemirreboques'] = []
-            for semirreboque in pesagemveiculocarga.listaSemirreboques:
-                pesagemveiculocarga_dump['listaSemirreboques'].append(
+        if pesagemveiculocarga.listaSemirreboque and \
+                len(pesagemveiculocarga.listaSemirreboque) > 0:
+            pesagemveiculocarga_dump['listaSemirreboque'] = []
+            for semirreboque in pesagemveiculocarga.listaSemirreboque:
+                pesagemveiculocarga_dump['listaSemirreboque'].append(
                     semirreboque.dump(exclude=['ID', 'pesagem', 'pesagem_id'])
                 )
+        return pesagemveiculocarga_dump
+
+
+    def insert_acessoveiculo(self, evento: dict) -> orm.PesagemVeiculoCarga:
+        logging.info('Creating PesagemVeiculoCarga %s..', evento.get('IDEvento'))
+        acessoveiculo = self.insert_evento(orm.PesagemVeiculoCarga, evento,
+                                                 commit=False)
+        listareboques = evento.get('listaSemirreboque', [])
+        for reboque in listareboques:
+            logging.info('Creating Semirreboque %s..',
+                         reboque.get('placa'))
+            print(reboque)
+            semirreboque = orm.ReboquePesagemVeiculoCarga(acessoveiculo=acessoveiculo,
+                                              **reboque)
+            self.db_session.add(semirreboque)
+        self.db_session.commit()
+        self.db_session.refresh(acessoveiculo)
+        return acessoveiculo
+
+
+    def load_acessoveiculo(self, codRecinto:str,
+                                 idEvento: str) -> orm.PesagemVeiculoCarga:
+        """
+        Retorna PesagemVeiculoCarga encontrada única no filtro recinto E IDEvento.
+
+        :param codRecinto: Codigo do recinto
+        :param IDEvento: ID do Evento informado pelo recinto
+        :return: instância objeto orm.InspecaonaoInvasiva
+        """
+        acessoveiculo = orm.PesagemVeiculoCarga.query.filter(
+            orm.PesagemVeiculoCarga.idEvento == idEvento,
+            orm.PesagemVeiculoCarga.codRecinto == codRecinto
+        ).outerjoin(
+            orm.ReboquePesagemVeiculoCarga
+        ).one()
+        acessoveiculo_dump = acessoveiculo.dump()
+        if acessoveiculo.listaSemirreboque and \
+                len(acessoveiculo.listaSemirreboque) > 0:
+            acessoveiculo_dump['listaSemirreboque'] = []
+            for semirreboque in acessoveiculo.listaSemirreboque:
+                acessoveiculo_dump['listaSemirreboque'].append(
+                    semirreboque.dump(exclude=['ID', 'pesagem', 'pesagem_id'])
+                )
+        return acessoveiculo_dump
 
 
     def load_arquivo_eventos(self, file):

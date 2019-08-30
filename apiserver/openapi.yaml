@@ -516,49 +516,6 @@ components:
           capturaautomatica:
             type: boolean
             description: Captura realizada automaticamente pela balanca, sem intervencao manual ou digitacao
-    PesagemTerrestre:
-      allOf:
-      - $ref: '#/components/schemas/Evento'
-      - type: object
-        properties:
-          documentotransporte:
-            type: string
-            description: Numero do conteiner
-          tipodocumentotransporte:
-            $ref: '#/components/schemas/TipoDocumentoTransporte'
-          pesobrutodeclarado:
-            type: integer
-            description: Peso bruto declarado nos documentos de transporte em kg
-          placa:
-            type: string
-            description: Placa do caminhao/truck/cavalo
-          tara:
-            type: integer
-            description: Tara do caminhao/truck/cavalo
-          reboques:
-            type: array
-            items:
-              type: object
-              properties:
-                placa:
-                  type: string
-                tara:
-                  type: integer
-          conteineres:
-            type: array
-            items:
-              type: object
-              properties:
-                numero:
-                  type: string
-                tara:
-                  type: integer
-          pesobalanca:
-            type: integer
-            description: Peso do conjunto cavalo-carreta-carga retirado da balanca
-          capturaautomatica:
-            type: boolean
-            description: Captura realizada automaticamente pela balanca, sem intervencao manual ou digitacao
     InspecaonaoInvasiva:
       allOf:
       - $ref: '#/components/schemas/Evento'

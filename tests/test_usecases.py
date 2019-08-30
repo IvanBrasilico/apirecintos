@@ -26,21 +26,34 @@ class UseCaseTestCase(BaseTestCase):
         self.compara_eventos(evento, evento_banco.dump())
         self.compara_eventos(evento, evento_banco_load.dump())
 
-    """
-    def test_PesagemVeiculoCarga(self):
-        self._insert_and_load(orm.PesagemVeiculoCarga)
-    """
 
     def test_InspecaonaoInvasiva(self):
         evento = self.open_json_test_case(orm.InspecaonaoInvasiva)
         evento_banco = self.usecase.insert_inspecaonaoinvasiva(evento)
-
-        self.compara_eventos(evento, evento_banco.dump())
         evento_banco_load = self.usecase.load_inspecaonaoinvasiva(
             evento['codRecinto'],
             evento['idEvento'])
-        print(sorted(evento.items(), key = lambda x: x[0]))
-        print(sorted(evento_banco_load.items(), key = lambda x: x[0]))
+        print(sorted(evento.items(), key=lambda x: x[0]))
+        print(sorted(evento_banco_load.items(), key=lambda x: x[0]))
         self.compara_eventos(evento, evento_banco_load)
-        # print(sorted(evento_banco.dump().items(), key = lambda x: x[0]))
-        assert False
+        # assert False
+
+    def test_PesagemVeiculoCarga(self):
+        evento = self.open_json_test_case(orm.PesagemVeiculoCarga)
+        evento_banco = self.usecase.insert_pesagemveiculocarga(evento)
+        evento_banco_load = self.usecase.load_pesagemveiculocarga(
+            evento['codRecinto'],
+            evento['idEvento'])
+        print(sorted(evento.items(), key=lambda x: x[0]))
+        print(sorted(evento_banco_load.items(), key=lambda x: x[0]))
+        self.compara_eventos(evento, evento_banco_load)
+
+    def test_acessoveiculo(self):
+        evento = self.open_json_test_case(orm.AcessoVeiculo)
+        evento_banco = self.usecase.insert_acessoveiculo(evento)
+        evento_banco_load = self.usecase.load_acessoveiculo(
+            evento['codRecinto'],
+            evento['idEvento'])
+        print(sorted(evento.items(), key=lambda x: x[0]))
+        print(sorted(evento_banco_load.items(), key=lambda x: x[0]))
+        self.compara_eventos(evento, evento_banco_load)

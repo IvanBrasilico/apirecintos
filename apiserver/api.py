@@ -134,11 +134,11 @@ def add_evento(aclass, evento):
     return _response(novo_evento.hash, 201)
 
 
-def pesageveiculocarga(evento):
+def pesagemveiculocarga(evento):
     return add_evento(orm.PesagemVeiculoCarga, evento)
 
 
-def get_pesageveiculocarga(IDEvento):
+def get_pesagemveiculocarga(IDEvento):
     return get_evento(IDEvento, orm.PesagemVeiculoCarga)
 
 
