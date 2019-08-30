@@ -135,11 +135,11 @@ def add_evento(aclass, evento):
 
 
 def pesagemmaritimo(evento):
-    return add_evento(orm.PesagemMaritimo, evento)
+    return add_evento(orm.PesagemVeiculoCarga, evento)
 
 
 def get_pesagemmaritimo(IDEvento):
-    return get_evento(IDEvento, orm.PesagemMaritimo)
+    return get_evento(IDEvento, orm.PesagemVeiculoCarga)
 
 
 def inspecaonaoinvasiva(evento):

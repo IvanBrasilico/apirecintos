@@ -8,6 +8,7 @@ from dateutil.parser import parse
 
 from apiserver.models import orm
 
+JSON_TEST_CASES_PATH = os.path.join(os.path.dirname(__file__), 'json_exemplos')
 
 def random_str(num, fila):
     result = ''
@@ -41,12 +42,23 @@ def extractDictAFromB(A, B):
 
 class BaseTestCase(TestCase):
 
+
+    def open_json_test_case(self, classe_evento):
+        with open(os.path.join(JSON_TEST_CASES_PATH,
+                               classe_evento.__name__) + '.json') as json_in:
+            return json.load(json_in)
+
+
     def setUp(self):
         self.db_session, self.engine, self.testes, self.cadastros = create_session()
         orm.Base.metadata.create_all(bind=self.engine)
         self.recinto = '00001'
         self.assinado = ''
         self.headers = {}
+        self.data_fields = ['dataevento', 'dataregistro', 'dataoperacao',
+                     'dataliberacao', 'dataagendamento', 'dtHrTransmissao',
+                     'dtHrOcorrencia', 'dtHrRegistro',
+                     'datacriacao', 'datamodificacao']
 
     def tearDown(self) -> None:
         orm.Base.metadata.drop_all(bind=self.engine)
@@ -67,13 +79,23 @@ class BaseTestCase(TestCase):
         token = rv.data.decode('utf-8').strip()
         self.headers = {'Authorization': 'Bearer %s' % token}
 
+    def purge_datas(self, adict, bdict):
+        for data in self.data_fields:
+            if adict.get(data) is not None:
+                adict.pop(data)
+            if bdict.get(data) is not None:
+                bdict.pop(data)
+
     def compare_dict(self, adict, bdict):
         for k, v in adict.items():
             vb = bdict.get(k)
             if vb is not None:
                 if isinstance(vb, list):
                     for itema, itemb in zip(v, vb):
-                        self.compare_dict(itema, itemb)
+                        if isinstance(itema, str):
+                            self.assertEqual(itema, itemb)
+                        else:
+                            self.compare_dict(itema, itemb)
                 elif isinstance(vb, dict):
                     self.compare_dict(v, vb)
                 else:
@@ -82,15 +104,11 @@ class BaseTestCase(TestCase):
                             vadate = parse(v)
                             # self.assertEqual(vadate, vb)
                     else:
-                        self.assertEqual(v, vb)
+                        if k not in self.data_fields:
+                            self.assertEqual(v, vb)
 
     def compara_eventos(self, teste, response_json):
-        for data in ['dataevento', 'dataregistro', 'dataoperacao',
-                     'dataliberacao', 'dataagendamento']:
-            if teste.get(data) is not None:
-                teste.pop(data)
-            if response_json.get(data) is not None:
-                response_json.pop(data)
+        self.purge_datas(teste, response_json)
         # sub_response = extractDictAFromB(teste, response_json)
         self.compare_dict(teste, response_json)
         # self.maxDiff = None
@@ -135,6 +153,6 @@ class BaseTestCase(TestCase):
                  'taraconjunto': tara,
                  'tipodocumentotransporte': 'CE'}
             self.pesagens.append(pesagem)
-            json_pesagens = {'PesagemMaritimo': self.pesagens}
+            json_pesagens = {'PesagemVeiculoCarga': self.pesagens}
             with open('test.json', 'w', encoding='utf-8', newline='') as json_out:
                 json.dump(json_pesagens, json_out)

@@ -1,5 +1,4 @@
 import collections
-import datetime
 import logging
 import mimetypes
 import os
@@ -7,7 +6,7 @@ from base64 import b64decode, b64encode
 
 from dateutil.parser import parse
 from sqlalchemy import Boolean, Column, DateTime, Integer, \
-    String, create_engine, ForeignKey, Index, Table, Float
+    String, create_engine, ForeignKey, Index, Table
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker, relationship, backref
 
@@ -44,35 +43,42 @@ class BaseDumpable(Base):
 
 class EventoBase(BaseDumpable):
     __abstract__ = True
-    IDEvento = Column(Integer, index=True)
-    dataevento = Column(DateTime(), index=True)
-    operadorevento = Column(String(14), index=True)
-    dataregistro = Column(DateTime(), index=True)
-    operadorregistro = Column(String(14), index=True)
-    time_created = Column(DateTime(timezone=True),
-                          index=True)
-    recinto = Column(String(10), index=True)
-    request_IP = Column(String(21), index=True)
-    # TODO: Ver como tratar retificação (viola índice único)
+
+    cnpjTransmissor = Column(String, index=True)
+    codRecinto = Column(String, index=True)
+    contingencia = Column(Boolean, index=True)
+    cpfOperOcor = Column(String, index=True)
+    cpfOperReg = Column(String, index=True)
+    dtHrOcorrencia = Column(DateTime(), index=True)
+    dtHrTransmissao = Column(DateTime(), index=True)
+    dtHrRegistro = Column(DateTime(), index=True)
+    idEvento = Column(String, index=True)
+    idEventoRetif = Column(String, index=True)
     retificador = Column(Boolean)
+    ip = Column(String, index=True)
+    hash = Column(String, index=True)
 
-    def __init__(self, IDEvento, dataevento, operadorevento, dataregistro,
-                 operadorregistro, retificador,
-                 time_created=None, recinto=None, request_IP=None):
-        self.IDEvento = IDEvento
-        # print(dataevento)
-        # print(parse(dataevento))
-        self.dataevento = parse(dataevento)
-        self.operadorevento = operadorevento
-        self.dataregistro = parse(dataregistro)
-        self.operadorregistro = operadorregistro
-        self.retificador = retificador
-        self.time_created = datetime.datetime.utcnow()
-
-        if recinto is not None:
-            self.recinto = recinto
-        if request_IP is not None:
-            self.request_IP = request_IP
+    def __init__(self, **kwargs):
+        superkwargs = dict([
+            (k, v) for k, v in kwargs.items() if k in vars(BaseDumpable).keys()
+        ])
+        super().__init__(**superkwargs)
+        self.cnpjTransmissor = kwargs.get('cnpjTransmissor')
+        self.codRecinto = kwargs.get('codRecinto')
+        self.contingencia = kwargs.get('contingencia')
+        self.cpfOperOcor = kwargs.get('cpfOperOcor')
+        self.cpfOperReg = kwargs.get('cpfOperReg')
+        if kwargs.get('dtHrOcorrencia') is not None:
+            self.dtHrOcorrencia = parse(kwargs.get('dtHrOcorrencia'))
+        if kwargs.get('dtHrTransmissao') is not None:
+            self.dtHrTransmissao = parse(kwargs.get('dtHrTransmissao'))
+        if kwargs.get('dtHrRegistro') is not None:
+            self.dtHrRegistro = parse(kwargs.get('dtHrRegistro'))
+        self.idEvento = kwargs.get('idEvento')
+        self.idEventoRetif = kwargs.get('idEventoRetif')
+        self.retificador = kwargs.get('retificador')
+        self.ip = kwargs.get('ip')
+        self.hash = kwargs.get('hash')
 
 
 class PesagemTerrestre(EventoBase):
@@ -162,7 +168,7 @@ class ReboquesPesagem(BaseDumpable):
     )
 
 
-class PesagemMaritimo(EventoBase):
+class PesagemVeiculoCarga(EventoBase):
     __tablename__ = 'pesagensmaritimo'
     __table_args__ = {'sqlite_autoincrement': True}
     ID = Column(Integer, primary_key=True)
@@ -196,24 +202,20 @@ class InspecaonaoInvasiva(EventoBase):
     __tablename__ = 'inspecoesnaoinvasivas'
     __table_args__ = {'sqlite_autoincrement': True}
     ID = Column(Integer, primary_key=True)
-    documentotransporte = Column(String(20))
-    tipodocumentotransporte = Column(String(20))
-    numero = Column(String(11))
+    idCamera = Column(Integer)
+    idScanner = Column(Integer)
     placa = Column(String(8))
-    placasemireboque = Column(String(8))
-    capturaautomatica = Column(Boolean)
+    ocrPlaca = Column(Boolean)
 
     def __init__(self, **kwargs):
         superkwargs = dict([
             (k, v) for k, v in kwargs.items() if k in vars(EventoBase).keys()
         ])
         super().__init__(**superkwargs)
-        self.documentotransporte = kwargs.get('documentotransporte')
-        self.tipodocumentotransporte = kwargs.get('tipodocumentotransporte')
-        self.numero = kwargs.get('numero')
+        self.idCamera = kwargs.get('idCamera')
+        self.idScanner = kwargs.get('idScanner')
         self.placa = kwargs.get('placa')
-        self.placasemireboque = kwargs.get('placasemireboque')
-        self.capturaautomatica = kwargs.get('capturaautomatica')
+        self.ocrPlaca = kwargs.get('ocrPlaca')
 
 
 class AnexoBase(BaseDumpable):
@@ -227,10 +229,10 @@ class AnexoBase(BaseDumpable):
 
     def monta_caminho_arquivo(self, basepath, eventobase):
         filepath = basepath
-        for caminho in [eventobase.recinto,
-                        eventobase.dataevento.year,
-                        eventobase.dataevento.month,
-                        eventobase.dataevento.day]:
+        for caminho in [eventobase.codRecinto,
+                        eventobase.dtHrOcorrencia.year,
+                        eventobase.dtHrOcorrencia.month,
+                        eventobase.dtHrOcorrencia.day]:
             filepath = os.path.join(filepath, str(caminho))
             if not os.path.exists(filepath):
                 print('making dir %s' % filepath)
@@ -325,6 +327,46 @@ class IdentificadorInspecao(BaseDumpable):
     inspecao = relationship(
         'InspecaonaoInvasiva', backref=backref('identificadores')
     )
+
+
+class ConteinerUld(BaseDumpable):
+    __tablename__ = 'listaconteineresuldinspecao'
+    __table_args__ = {'sqlite_autoincrement': True}
+    ID = Column(Integer, primary_key=True)
+    num = Column(String(100))
+    ocrNum = Column(Boolean)
+    inspecao_id = Column(Integer, ForeignKey('inspecoesnaoinvasivas.ID'))
+    inspecao = relationship(
+        'InspecaonaoInvasiva', backref=backref('listaConteineresUld')
+    )
+
+
+class Semirreboque(BaseDumpable):
+    __tablename__ = 'listasemirreboquesinspecao'
+    __table_args__ = {'sqlite_autoincrement': True}
+    ID = Column(Integer, primary_key=True)
+    placa = Column(String(100))
+    ocrPlaca = Column(Boolean)
+    inspecao_id = Column(Integer, ForeignKey('inspecoesnaoinvasivas.ID'))
+    inspecao = relationship(
+        'InspecaonaoInvasiva', backref=backref('listaSemirreboques')
+    )
+
+class Manifesto(BaseDumpable):
+    __tablename__ = 'listamanifestos'
+    __table_args__ = {'sqlite_autoincrement': True}
+    ID = Column(Integer, primary_key=True)
+    num = Column(String(100))
+    tipo = Column(String)
+    inspecao_id = Column(Integer, ForeignKey('inspecoesnaoinvasivas.ID'))
+    inspecao = relationship(
+        'InspecaonaoInvasiva', backref=backref('listaManifestos')
+    )
+
+    def __init__(self, **kwargs):
+        self.num = kwargs.get('num')
+        self.tipo = kwargs.get('tipo')
+
 
 
 class AcessoVeiculo(EventoBase):
@@ -451,7 +493,7 @@ def init_db(uri='sqlite:///test.db'):
             # print(table)
             Table(table, Base.metadata,
                   Index(table + '_ideventorecinto_idx',
-                        'recinto', 'IDEvento',
+                        'codRecinto', 'idEvento',
                         unique=True,
                         ),
                   extend_existing=True

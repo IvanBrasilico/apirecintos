@@ -197,7 +197,7 @@ paths:
           application/json:
             schema:
               x-body-name: evento
-              $ref: '#/components/schemas/PesagemMaritimo'
+              $ref: '#/components/schemas/PesagemVeiculoCarga'
         required: true
       responses:
         201:
@@ -225,7 +225,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PesagemMaritimo'
+                $ref: '#/components/schemas/PesagemVeiculoCarga'
         400:
           description: ID inválido
           content: {}
@@ -429,26 +429,41 @@ components:
     Evento:
       type: object
       properties:
-        IDEvento:
-          type: integer
-          description: ID do Evento no sistema original, para referencia e consulta
-        dataevento:
+        dtHrTransmissao:
+          type: string
+          description: Data da recepção do Evento pela API
+          format: date-time
+        codRecinto:
+          type: string
+        cnpjTransmissor:
+          type: string
+        ip:
+          type: string
+        hash:
+          type: string
+        idEvento:
+          type: string
+        dtHrOcorrencia:
           type: string
           description: Data de ocorrência física do evento
           format: date-time
-        operadorevento:
+        dtHrRegistro:
           type: string
-          description: CPF do Operador que realizou o evento fisicamente/presencialmente
-        dataregistro:
-          type: string
-          description: Data de registro do evento no Sistema
+          description: Data do registro do Evento no Sistema original
           format: date-time
-        operadorregistro:
+        cpfOperOcor:
+          description: CPF do Operador que realizou o evento fisicamente
           type: string
+        cpfOperReg:
           description: CPF do Operador que registrou o evento no Sistema
+          type: string
         retificador:
-          type: boolean
           description: Retifica evento anteriormente transmitido
+          type: boolean
+        idEventoRetif:
+          type: string
+        contingencia:
+          type: boolean
     AcessoVeiculo:
       allOf:
       - $ref: '#/components/schemas/Evento'
@@ -661,35 +676,77 @@ components:
       - $ref: '#/components/schemas/Evento'
       - type: object
         properties:
-          documentotransporte:
-            type: string
-            description: Numero do documento de transporte
-          tipodocumentotransporte:
-            $ref: '#/components/schemas/TipoDocumentoTransporte'
-          identificadores:
+          listaManifestos:
             type: array
             items:
               type: object
               properties:
-                identificador:
+                num:
                   type: string
-          numero:
-            type: string
-            description: Numero do conteiner
+                  description: Numero do documento de transporte
+                tipo:
+                  $ref: '#/components/schemas/TipoDocumentoTransporte'
+          listaCarga:
+            type: array
+            items:
+              type: string
+          listaSemirreboque:
+            type: array
+            items:
+              type: object
+              properties:
+                placa:
+                  type: string
+                  description: Placa do semireboque
+                ocrPlaca:
+                  type: boolean
+          listaConteineresUld:
+            type: array
+            items:
+              type: object
+              properties:
+                num:
+                  type: string
+                  description: Numero do conteiner
+                ocrNum:
+                  type: boolean
           placa:
             type: string
             description: Placa do caminhao/truck/cavalo
-          placasemireboque:
-            type: string
-            description: Placa semireboque em caso de carregamento
-          capturaautomatica:
+          ocrPlaca:
             type: boolean
             description: Captura realizada automaticamente pelo OCR, sem intervencao manual ou digitacao
           anexos:
             type: array
-            description: Arquivos de imagem de inspecao nao invasiva ou arquivos texto (XML, JSON, etc) gerados pelo equipamento
+            description: Outros arquivos (XML, JSON, imagens, etc) gerados pelo equipamento
             items:
               $ref: '#/components/schemas/Anexos'
+          imgScanner:
+            type: object
+            properties:
+              dtHrScaneamento:
+                type: string
+              dtHrModifArquivo:
+                type: string
+              nmArquivo:
+                type: string
+              coordenadasAlerta:
+                type: object
+                properties:
+                  x:
+                    type: integer
+                  y:
+                    type: integer
+                  x2:
+                    type: integer
+                  y2:
+                    type: integer
+              img:
+                type: string
+          idScanner:
+            type: integer
+          idCamera:
+            type: integer
     FiltroNovoEvento:
       type: object
       properties:

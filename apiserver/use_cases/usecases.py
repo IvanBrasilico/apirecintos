@@ -9,7 +9,7 @@ from apiserver.models import orm
 
 class UseCases:
 
-    def __init__(self, db_session, recinto: str, request_IP: str, basepath: str):
+    def __init__(self, db_session, basepath: str):
         """Init
 
         :param db_session: Conexao ao Banco
@@ -18,8 +18,6 @@ class UseCases:
         :param basepath: Diretório raiz para gravar arquivos
         """
         self.db_session = db_session
-        self.recinto = recinto
-        self.request_IP = request_IP
         self.basepath = basepath
         self.eventos_com_filhos = {
             orm.InspecaonaoInvasiva: self.load_inspecaonaoinvasiva,
@@ -48,15 +46,12 @@ class UseCases:
                       evento.get('IDEvento'))
                      )
         novo_evento = aclass(**evento)
-        novo_evento.recinto = self.recinto
-        novo_evento.request_IP = self.request_IP
         self.db_session.add(novo_evento)
         if commit:
             self.db_session.commit()
         else:
             self.db_session.flush()
         self.db_session.refresh(novo_evento)
-        novo_evento.hash = hash(novo_evento)
         return novo_evento
 
     def load_evento(self, aclass, IDEvento: int, fields: list = None) -> orm.EventoBase:
@@ -183,10 +178,45 @@ class UseCases:
                 return evento.anexos[0]
         return None
 
+    def add_filhos(self, evento, pai, classe_filho, chave_pai):
+        filhos = evento.get(classe_filho, [])
+        for filho in filhos:
+            filho[chave_pai] = pai.ID
+            logging.info('Creating %s ', classe_filho)
+            anexoinspecao = orm.AnexoInspecao(inspecao=inspecaonaoinvasiva,
+                                              **anexo)
+            self.db_session.add(anexoinspecao)
+
+
+
     def insert_inspecaonaoinvasiva(self, evento: dict) -> orm.InspecaonaoInvasiva:
         logging.info('Creating inspecaonaoinvasiva %s..', evento.get('IDEvento'))
         inspecaonaoinvasiva = self.insert_evento(orm.InspecaonaoInvasiva, evento,
                                                  commit=False)
+        listaconteineres = evento.get('listaConteineresUld', [])
+        for conteiner in listaconteineres:
+            conteiner['inspecao_id'] = inspecaonaoinvasiva.ID
+            logging.info('Creating ConteinerUld %s..',
+                         conteiner.get('num'))
+            conteineruld = orm.ConteinerUld(inspecao=inspecaonaoinvasiva,
+                                              **conteiner)
+            self.db_session.add(conteineruld)
+        listareboques = evento.get('listaSemirreboque', [])
+        for reboque in listareboques:
+            reboque['inspecao_id'] = inspecaonaoinvasiva.ID
+            logging.info('Creating Semirreboque %s..',
+                         reboque.get('placa'))
+            semirreboque = orm.Semirreboque(inspecao=inspecaonaoinvasiva,
+                                              **reboque)
+            self.db_session.add(semirreboque)
+        listamanifestos = evento.get('listaManifestos', [])
+        for manifesto in listamanifestos:
+            manifesto['inspecao_id'] = inspecaonaoinvasiva.ID
+            logging.info('Creating manifesto %s..',
+                         manifesto.get('num'))
+            manifesto = orm.Manifesto(inspecao=inspecaonaoinvasiva,
+                                              **manifesto)
+            self.db_session.add(manifesto)
         anexos = evento.get('anexos', [])
         for anexo in anexos:
             anexo['inspecao_id'] = inspecaonaoinvasiva.ID
@@ -198,18 +228,20 @@ class UseCases:
             if anexo.get('content'):
                 anexoinspecao.save_file(self.basepath, content)
             self.db_session.add(anexoinspecao)
-        identificadores = evento.get('identificadores', [])
+        identificadores = evento.get('listaCarga', [])
         for identificador in identificadores:
             logging.info('Creating identificadorinspecaonaoinvasiva %s..',
-                         identificador.get('identificador'))
+                         identificador)
             oidentificador = orm.IdentificadorInspecao(
                 inspecao=inspecaonaoinvasiva,
-                **identificador)
+                identificador=identificador)
             self.db_session.add(oidentificador)
         self.db_session.commit()
+        self.db_session.refresh(inspecaonaoinvasiva)
         return inspecaonaoinvasiva
 
-    def load_inspecaonaoinvasiva(self, IDEvento: int) -> orm.InspecaonaoInvasiva:
+    def load_inspecaonaoinvasiva(self, codRecinto:str,
+                                 idEvento: str) -> orm.InspecaonaoInvasiva:
         """
         Retorna InspecaonaoInvasiva encontrada única no filtro recinto E IDEvento.
 
@@ -217,15 +249,20 @@ class UseCases:
         :return: instância objeto orm.InspecaonaoInvasiva
         """
         inspecaonaoinvasiva = orm.InspecaonaoInvasiva.query.filter(
-            orm.InspecaonaoInvasiva.IDEvento == IDEvento,
-            orm.InspecaonaoInvasiva.recinto == self.recinto
+            orm.InspecaonaoInvasiva.idEvento == idEvento,
+            orm.InspecaonaoInvasiva.codRecinto == codRecinto
         ).outerjoin(
             orm.AnexoInspecao
         ).outerjoin(
             orm.IdentificadorInspecao
+        ).outerjoin(
+            orm.ConteinerUld
+        ).outerjoin(
+            orm.Semirreboque
+        ).outerjoin(
+            orm.Manifesto
         ).one()
         inspecaonaoinvasiva_dump = inspecaonaoinvasiva.dump()
-        inspecaonaoinvasiva_dump['hash'] = hash(inspecaonaoinvasiva)
         if inspecaonaoinvasiva.anexos and len(inspecaonaoinvasiva.anexos) > 0:
             inspecaonaoinvasiva_dump['anexos'] = []
             for anexo in inspecaonaoinvasiva.anexos:
@@ -233,12 +270,34 @@ class UseCases:
                 inspecaonaoinvasiva_dump['anexos'].append(
                     anexo.dump(exclude=['ID', 'inspecao', 'inspecao_id'])
                 )
+        if inspecaonaoinvasiva.listaConteineresUld and \
+                len(inspecaonaoinvasiva.listaConteineresUld) > 0:
+            inspecaonaoinvasiva_dump['listaConteineresUld'] = []
+            for conteiner in inspecaonaoinvasiva.listaConteineresUld:
+                inspecaonaoinvasiva_dump['listaConteineresUld'].append(
+                    conteiner.dump(exclude=['ID', 'inspecao', 'inspecao_id'])
+                )
+        if inspecaonaoinvasiva.listaSemirreboques and \
+                len(inspecaonaoinvasiva.listaSemirreboques) > 0:
+            inspecaonaoinvasiva_dump['listaSemirreboques'] = []
+            for semirreboque in inspecaonaoinvasiva.listaSemirreboques:
+                inspecaonaoinvasiva_dump['listaSemirreboques'].append(
+                    semirreboque.dump(exclude=['ID', 'inspecao', 'inspecao_id'])
+                )
+        if inspecaonaoinvasiva.listaManifestos and \
+                len(inspecaonaoinvasiva.listaManifestos) > 0:
+            inspecaonaoinvasiva_dump['listaManifestos'] = []
+            for manifesto in inspecaonaoinvasiva.listaManifestos:
+                inspecaonaoinvasiva_dump['listaManifestos'].append(
+                    manifesto.dump(exclude=['ID', 'inspecao', 'inspecao_id'])
+                )
+
         if inspecaonaoinvasiva.identificadores and \
                 len(inspecaonaoinvasiva.identificadores) > 0:
-            inspecaonaoinvasiva_dump['identificadores'] = []
+            inspecaonaoinvasiva_dump['listaCarga'] = []
             for identificador in inspecaonaoinvasiva.identificadores:
-                inspecaonaoinvasiva_dump['identificadores'].append(
-                    identificador.dump(exclude=['ID', 'inspecao', 'inspecao_id'])
+                inspecaonaoinvasiva_dump['listaCarga'].append(
+                    identificador.identificador
                 )
         return inspecaonaoinvasiva_dump
 
