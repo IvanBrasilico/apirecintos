@@ -4,7 +4,6 @@
 	"cnpjTransmissor": 0,
 	"ip": "string",
 	"hash": "string",
-	
 	"idEvento": "string",
 	"dtHrOcorrencia": "2019-08-07T13:36:51.809Z",
 	"dtHrRegistro": "2019-08-07T13:36:51.809Z",
@@ -13,7 +12,24 @@
 	"retificador": false,
 	"idEventoRetif": "string",
 	"contingencia": false,
-	
+
+	"pesoBrutoManifesto": 0,
+	"placaCavalo": "string",
+	"taraConjunto": 0,
+	"numeroConteiner": "string",
+	"tipoConteiner": "string",
+	"taraConteiner": 0,
+	"pesoBrutoBalanca": 0,
+	"capturaAutoPeso": true,
+	"Dutos": "string",
+	"idBalanca": "id georreferenciamento 04.23",
+	"idCamera": "id georreferenciamento 04.23",
+	"listaSemirreboque": [
+		{
+			"placa": "string",
+			"tara": 0
+		}
+	],
 	"listaManifestos": [
 		{
 			"num": "string",
@@ -25,27 +41,5 @@
 					}
 			 ]
 		 }
-	],
-	"pesoBrutoManifesto": 0,
-	"placa": "string",
-	"tara": 0,
-	"listaSemirreboque": [
-		{
-			"placa": "string",
-			"tara": 0
-		}
-	],
-	"taraConjunto": 0,
-	"listaConteineresUld": [
-		{
-			"num": "string",
-			"tipo": "string",
-			"tara": 0
-		}
-	],
-	"pesoBrutoBalanca": 0,
-	"capturaAutoPeso": true,
-	"Dutos": "string",
-	"idBalanca": "id georreferenciamento 04.23",
-	"idCamera": "id georreferenciamento 04.23"
+	]
 }

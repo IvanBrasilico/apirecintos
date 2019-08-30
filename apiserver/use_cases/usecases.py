@@ -178,17 +178,6 @@ class UseCases:
                 return evento.anexos[0]
         return None
 
-    def add_filhos(self, evento, pai, classe_filho, chave_pai):
-        filhos = evento.get(classe_filho, [])
-        for filho in filhos:
-            filho[chave_pai] = pai.ID
-            logging.info('Creating %s ', classe_filho)
-            anexoinspecao = orm.AnexoInspecao(inspecao=inspecaonaoinvasiva,
-                                              **anexo)
-            self.db_session.add(anexoinspecao)
-
-
-
     def insert_inspecaonaoinvasiva(self, evento: dict) -> orm.InspecaonaoInvasiva:
         logging.info('Creating inspecaonaoinvasiva %s..', evento.get('IDEvento'))
         inspecaonaoinvasiva = self.insert_evento(orm.InspecaonaoInvasiva, evento,
@@ -300,6 +289,49 @@ class UseCases:
                     identificador.identificador
                 )
         return inspecaonaoinvasiva_dump
+
+
+
+    def insert_pesagemveiculocarga(self, evento: dict) -> orm.PesagemVeiculoCarga:
+        logging.info('Creating PesagemVeiculoCarga %s..', evento.get('IDEvento'))
+        pesagemveiculocarga = self.insert_evento(orm.InspecaonaoInvasiva, evento,
+                                                 commit=False)
+        listareboques = evento.get('listaSemirreboque', [])
+        for reboque in listareboques:
+            logging.info('Creating Semirreboque %s..',
+                         reboque.get('placa'))
+            semirreboque = orm.ReboquePesagemVeiculoCarga(pesagem=pesagemveiculocarga,
+                                              **reboque)
+            self.db_session.add(semirreboque)
+        self.db_session.commit()
+        self.db_session.refresh(pesagemveiculocarga)
+        return pesagemveiculocarga
+
+
+    def load_pesagemveiculocarga(self, codRecinto:str,
+                                 idEvento: str) -> orm.PesagemVeiculoCarga:
+        """
+        Retorna PesagemVeiculoCarga encontrada única no filtro recinto E IDEvento.
+
+        :param codRecinto: Codigo do recinto
+        :param IDEvento: ID do Evento informado pelo recinto
+        :return: instância objeto orm.InspecaonaoInvasiva
+        """
+        pesagemveiculocarga = orm.PesagemVeiculoCarga.query.filter(
+            orm.PesagemVeiculoCarga.idEvento == idEvento,
+            orm.PesagemVeiculoCarga.codRecinto == codRecinto
+        ).outerjoin(
+            orm.ReboquePesagemVeiculoCarga
+        ).one()
+        pesagemveiculocarga_dump = pesagemveiculocarga.dump()
+        if pesagemveiculocarga.listaSemirreboques and \
+                len(pesagemveiculocarga.listaSemirreboques) > 0:
+            pesagemveiculocarga_dump['listaSemirreboques'] = []
+            for semirreboque in pesagemveiculocarga.listaSemirreboques:
+                pesagemveiculocarga_dump['listaSemirreboques'].append(
+                    semirreboque.dump(exclude=['ID', 'pesagem', 'pesagem_id'])
+                )
+
 
     def load_arquivo_eventos(self, file):
         """Valida e carrega arquivo JSON de eventos."""

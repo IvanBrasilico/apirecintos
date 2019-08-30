@@ -141,56 +141,9 @@ paths:
         default:
           description: Erro inesperado
           content: {}
-  /pesagemveiculovazio:
+  /pesagemveiculocarga:
     post:
-      operationId: api.pesagemveiculovazio
-      requestBody:
-        description: Controle de pesagem de tara de veiculos em modal rodoviario
-        content:
-          application/json:
-            schema:
-              x-body-name: evento
-              $ref: '#/components/schemas/PesagemVeiculoVazio'
-        required: true
-      responses:
-        201:
-          description: Evento incluido
-          content: {}
-        400:
-          description: Entrada invalida - erro nos campos ou na validacao
-          content: {}
-        409:
-          description: Evento repetido ou outro erro de integridade
-          content: {}
-  /pesagemveiculovazio/{IDEvento}:
-    get:
-      operationId: api.get_pesagemveiculovazio
-      parameters:
-      - name: IDEvento
-        in: path
-        description: ID do Evento no Sistema original
-        required: true
-        schema:
-          type: integer
-      responses:
-        200:
-          description: Evento Base
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PesagemVeiculoVazio'
-        400:
-          description: ID inválido
-          content: {}
-        404:
-          description: Evento com ID não encontrado para recinto atual.
-          content: {}
-        default:
-          description: Erro inesperado
-          content: {}
-  /pesagemmaritimo:
-    post:
-      operationId: api.pesagemmaritimo
+      operationId: api.pesagemveiculocarga
       requestBody:
         description: Controle de pesagem no modal maritimo
         content:
@@ -209,9 +162,9 @@ paths:
         409:
           description: Evento repetido ou outro erro de integridade
           content: {}
-  /pesagemmaritimo/{IDEvento}:
+  /pesagemveiculocarga/{IDEvento}:
     get:
-      operationId: api.get_pesagemmaritimo
+      operationId: api.get_pesagemveiculocarga
       parameters:
       - name: IDEvento
         in: path
@@ -226,53 +179,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PesagemVeiculoCarga'
-        400:
-          description: ID inválido
-          content: {}
-        404:
-          description: Evento com ID não encontrado para recinto atual.
-          content: {}
-        default:
-          description: Erro inesperado
-          content: {}
-  /pesagemterrestre:
-    post:
-      operationId: api.pesagemterrestre
-      requestBody:
-        description: Controle de pesagem no modal rodoviario
-        content:
-          application/json:
-            schema:
-              x-body-name: evento
-              $ref: '#/components/schemas/PesagemTerrestre'
-        required: true
-      responses:
-        201:
-          description: Evento incluido
-          content: {}
-        400:
-          description: Entrada invalida - erro nos campos ou na validacao
-          content: {}
-        409:
-          description: Evento repetido ou outro erro de integridade
-          content: {}
-  /pesagemterrestre/{IDEvento}:
-    get:
-      operationId: api.get_pesagemterrestre
-      parameters:
-      - name: IDEvento
-        in: path
-        description: ID do Evento no Sistema original
-        required: true
-        schema:
-          type: integer
-      responses:
-        200:
-          description: Evento Base
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PesagemTerrestre'
         400:
           description: ID inválido
           content: {}
@@ -579,25 +485,7 @@ components:
             description: Data e hora da comunicação de liberação da carga pelo recinto
               (apenas na saída)
             format: date-time
-    PesagemVeiculoVazio:
-      allOf:
-      - $ref: '#/components/schemas/Evento'
-      - type: object
-        properties:
-          placa:
-            type: string
-            description: Placa do caminhao/truck/cavalo
-          reboques:
-            type: array
-            items:
-              type: object
-              properties:
-                placa:
-                  type: string
-          pesobalanca:
-            type: integer
-            description: Peso bruto da balanca
-    PesagemMaritimo:
+    PesagemVeiculoCarga:
       allOf:
       - $ref: '#/components/schemas/Evento'
       - type: object

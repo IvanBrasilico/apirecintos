@@ -134,11 +134,11 @@ def add_evento(aclass, evento):
     return _response(novo_evento.hash, 201)
 
 
-def pesagemmaritimo(evento):
+def pesageveiculocarga(evento):
     return add_evento(orm.PesagemVeiculoCarga, evento)
 
 
-def get_pesagemmaritimo(IDEvento):
+def get_pesageveiculocarga(IDEvento):
     return get_evento(IDEvento, orm.PesagemVeiculoCarga)
 
 
@@ -157,7 +157,6 @@ def get_inspecaonaoinvasiva(IDEvento):
     usecase = create_usecases()
     try:
         inspecaonaoinvasiva = usecase.load_inspecaonaoinvasiva(IDEvento)
-        print(inspecaonaoinvasiva)
         return inspecaonaoinvasiva, 200
     except Exception as err:
         logging.error(err, exc_info=True)
