@@ -115,16 +115,22 @@ paths:
         409:
           description: Evento repetido ou outro erro de integridade
           content: {}
-  /acessoveiculo/{IDEvento}:
+  /acessoveiculo/{codRecinto}/{IDEvento}:
     get:
       operationId: api.get_acessoveiculo
       parameters:
+      - name: codRecinto
+        in: path
+        description: ID do Evento no Sistema original
+        required: true
+        schema:
+          type: string
       - name: IDEvento
         in: path
         description: ID do Evento no Sistema original
         required: true
         schema:
-          type: integer
+          type: string
       responses:
         200:
           description: Evento Base
@@ -375,28 +381,46 @@ components:
       - $ref: '#/components/schemas/Evento'
       - type: object
         properties:
-          tipooperacao:
+          direcao:
             $ref: '#/components/schemas/EntradaSaida'
-          IDAgendamento:
-            type: integer
+          idAgendamento:
+            type: string
             description: ID do Agendamento desta operação, se houver
-          IDGate:
-            type: string
-            description: Identificador do Portao de ocorrencia do Evento
-          documentotransporte:
-            type: string
-            description: Numero do conteiner
-          tipodocumentotransporte:
-            $ref: '#/components/schemas/TipoDocumentoTransporte'
           placa:
             type: string
             description: Placa Cavalo-trator/truck/automóvel
-          dimensaoespecial:
+          ocrPlaca:
+            type: boolean
+            description: Placa lida automaticamente
+          oggDimensao:
             type: boolean
             description: Dimensoes que impecam entrada comum ou escaneamento(OOG)
-          pesoespecial:
+          oggPeso:
             type: boolean
             description: Peso que impeca entrada comum ou escaneamento(OOG)
+          cnpjTransportador:
+            type: string
+            description: CPF ou CNPJ do Transportador responsável
+          nmTransportador:
+            type: string
+            description: Nome do Transportador responsável
+          cpfMotorista:
+            type: string
+            description: CPF do Motorista
+          nmMotorista:
+            type: string
+            description: Nome do Motorista
+          codRecintoDestino:
+            type: string
+            description: Nome do Motorista
+          modal:
+            $ref: '#/components/schemas/TipoModal'
+          idGate:
+            type: string
+            description: Identificador do Portao de ocorrencia do Evento
+          idCamera:
+            type: string
+            description: Identificador da Camera de ocorrencia do Evento
           listanfe:
             type: array
             items:
@@ -463,28 +487,6 @@ components:
                   type: string
                 avarias:
                   type: string
-          cpfcnpjtransportador:
-            type: string
-            description: CPF ou CNPJ do Transportador responsável
-          nometransportador:
-            type: string
-            description: Nome do Transportador responsável
-          cpfmotorista:
-            type: string
-            description: CPF do Motorista
-          nomemotorista:
-            type: string
-            description: Nome do Motorista
-          modal:
-            $ref: '#/components/schemas/TipoModal'
-          ocr:
-            type: boolean
-            description: Captura automática de placa (OCR)
-          dataliberacao:
-            type: string
-            description: Data e hora da comunicação de liberação da carga pelo recinto
-              (apenas na saída)
-            format: date-time
     PesagemVeiculoCarga:
       allOf:
       - $ref: '#/components/schemas/Evento'

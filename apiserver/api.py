@@ -38,9 +38,8 @@ def get_recinto():
 
 def create_usecases():
     db_session = current_app.config['db_session']
-    request_IP = request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
     basepath = current_app.config['UPLOAD_FOLDER']
-    return UseCases(db_session, get_recinto(), request_IP, basepath)
+    return UseCases(db_session, basepath)
 
 
 def _response(msg, status_code, title=None):
@@ -135,11 +134,24 @@ def add_evento(aclass, evento):
 
 
 def pesagemveiculocarga(evento):
-    return add_evento(orm.PesagemVeiculoCarga, evento)
+    usecase = create_usecases()
+    try:
+        evento = usecase.insert_pesagemveiculocarga(evento)
+    except Exception as err:
+        logging.error(err, exc_info=True)
+        usecase.db_session.rollback()
+        return _response_for_exception(err)
+    return _response(evento.hash, 201)
 
 
-def get_pesagemveiculocarga(IDEvento):
-    return get_evento(IDEvento, orm.PesagemVeiculoCarga)
+def get_pesagemveiculocarga(codRecinto, IDEvento):
+    usecase = create_usecases()
+    try:
+        evento = usecase.load_pesagemveiculocarga(codRecinto, IDEvento)
+        return evento, 200
+    except Exception as err:
+        logging.error(err, exc_info=True)
+        return _response_for_exception(err)
 
 
 def inspecaonaoinvasiva(evento):
@@ -153,210 +165,36 @@ def inspecaonaoinvasiva(evento):
     return _response(inspecaonaoinvasiva.hash, 201)
 
 
-def get_inspecaonaoinvasiva(IDEvento):
+def get_inspecaonaoinvasiva(codRecinto, IDEvento):
     usecase = create_usecases()
     try:
-        inspecaonaoinvasiva = usecase.load_inspecaonaoinvasiva(IDEvento)
+        inspecaonaoinvasiva = usecase.load_inspecaonaoinvasiva(codRecinto, IDEvento)
         return inspecaonaoinvasiva, 200
     except Exception as err:
         logging.error(err, exc_info=True)
         return _response_for_exception(err)
 
 
-def get_acessoveiculo(IDEvento):
-    try:
-        acessoveiculo = orm.AcessoVeiculo.query.filter(
-            orm.AcessoVeiculo.IDEvento == IDEvento
-        ).outerjoin(
-            orm.ListaNfeGate
-        ).outerjoin(
-            orm.ConteineresGate
-        ).outerjoin(
-            orm.ReboquesGate).one_or_none()
-        if acessoveiculo is None:
-            return _response('Evento não encontrado.', 404)
-        acessoveiculo_schema = maschemas.AcessoVeiculo()
-        data = acessoveiculo_schema.dump(acessoveiculo)
-        if getattr(data, 'data'):
-            data = data.data
-        data = {**{'hash': hash(acessoveiculo)}, **data}
-        return data, 200
-    except Exception as err:
-        logging.error(err, exc_info=True)
-        return _response(err, 400)
-
-
 def acessoveiculo(evento):
-    db_session = current_app.config['db_session']
-    logging.info('Creating acessoveiculo %s..', evento.get('IDEvento'))
-    try:
-        acessoveiculo = orm.AcessoVeiculo(**evento)
-        db_session.add(acessoveiculo)
-        conteineres = evento.get('conteineres')
-        if conteineres:
-            for conteiner in conteineres:
-                logging.info('Creating conteiner %s..', conteiner.get('numero'))
-                conteinergate = orm.ConteineresGate(acessoveiculo=acessoveiculo,
-                                                    **conteiner)
-                # numero=conteiner.get('numero'),
-                # avarias=conteiner.get('avarias'),
-                # l acres=conteiner.get('lacres'),
-                # vazio=conteiner.get('vazio'))
-                db_session.add(conteinergate)
-        reboques = evento.get('reboques')
-        if reboques:
-            for reboque in reboques:
-                logging.info('Creating reboque %s..', reboque.get('placa'))
-                reboquegate = orm.ReboquesGate(acessoveiculo=acessoveiculo, **reboque)
-
-                #                               placa=reboque.get('placa'),
-                #                               avarias=reboque.get('avarias'),
-                #                              lacres=reboque.get('lacres'),
-                #                             vazio=reboque.get('vazio'))
-            db_session.add(reboquegate)
-        listanfe = evento.get('listanfe')
-        if listanfe:
-            for chavenfe in listanfe:
-                logging.info('Creating reboque %s..', chavenfe.get('chavenfe'))
-                achavenfe = orm.ListaNfeGate(acessoveiculo=acessoveiculo, **chavenfe)
-            db_session.add(achavenfe)
-    except Exception as err:
-        logging.error(err, exc_info=True)
-        db_session.rollback()
-        return _response(err, 400)
-    return _commit(acessoveiculo)
-
-
-
-def pesagemveiculovazio(evento):
-    db_session = current_app.config['db_session']
-    logging.info('Creating pesagemveiculovazio %s..', evento.get('IDEvento'))
-    try:
-        pesagemveiculovazio = orm.PesagemVeiculoVazio(**evento)
-        db_session.add(pesagemveiculovazio)
-        reboques = evento.get('reboques')
-        if reboques:
-            for reboque in reboques:
-                logging.info('Creating lotepesagemveiculovazio %s..',
-                             reboque.get('placa'))
-                olote = orm.ReboquesPesagem(
-                    pesagem=pesagemveiculovazio,
-                    placa=reboque.get('placa')
-                )
-                db_session.add(olote)
-    except Exception as err:
-        logging.error(err, exc_info=True)
-        db_session.rollback()
-        return _response(err, 400)
-    return _commit(pesagemveiculovazio)
-
-
-def get_pesagemveiculovazio(IDEvento):
-    try:
-        pesagemveiculovazio = orm.PesagemVeiculoVazio.query.filter(
-            orm.PesagemVeiculoVazio.IDEvento == IDEvento
-        ).outerjoin(
-            orm.ReboquesPesagem
-        ).one_or_none()
-        if pesagemveiculovazio is None:
-            return _response('Evento não encontrado.', 404)
-        pesagemveiculovazio_schema = maschemas.PesagemVeiculoVazio()
-        data = pesagemveiculovazio_schema.dump(pesagemveiculovazio)
-        if getattr(data, 'data'):
-            data = data.data
-        data = {**{'hash': hash(pesagemveiculovazio)}, **data}
-        return data, 200
-    except Exception as err:
-        logging.error(err, exc_info=True)
-        return str(err), 400
-
-
-
-def pesagemterrestre(evento):
-    db_session = current_app.config['db_session']
-    logging.info('Creating pesagemterrestre %s..', evento.get('IDEvento'))
-    try:
-        pesagemterrestre = orm.PesagemTerrestre(**evento)
-        db_session.add(pesagemterrestre)
-        conteineres = evento.get('conteineres')
-        if conteineres:
-            for conteiner in conteineres:
-                logging.info('Creating conteinerpesagemterrestre %s..',
-                             conteiner.get('numero'))
-                oconteiner = orm.ConteinerPesagemTerrestre(
-                    pesagem=pesagemterrestre,
-                    numero=conteiner.get('numero'),
-                    tara=conteiner.get('tara'))
-                db_session.add(oconteiner)
-        reboques = evento.get('reboques')
-        if reboques:
-            for reboque in reboques:
-                logging.info('Creating reboque %s..', reboque.get('placa'))
-                oreboque = orm.ReboquePesagemTerrestre(
-                    pesagem=pesagemterrestre,
-                    placa=reboque.get('placa'),
-                    tara=reboque.get('tara'))
-            db_session.add(oreboque)
-    except Exception as err:
-        logging.error(err, exc_info=True)
-        db_session.rollback()
-        return _response(err, 400)
-    return _commit(pesagemterrestre)
-
-
-def get_pesagemterrestre(IDEvento):
-    try:
-        pesagemterrestre = orm.PesagemTerrestre.query.filter(
-            orm.PesagemTerrestre.IDEvento == IDEvento
-        ).outerjoin(
-            orm.ReboquePesagemTerrestre
-        ).outerjoin(
-            orm.ConteinerPesagemTerrestre
-        ).one_or_none()
-        if pesagemterrestre is None:
-            return _response('Evento não encontrado.', 404)
-        pesagemterrestre_schema = orm.PesagemTerrestreSchema()
-        data = pesagemterrestre_schema.dump(pesagemterrestre)
-        if getattr(data, 'data'):
-            data = data.data
-        data = {**{'hash': hash(pesagemterrestre)}, **data}
-        return data, 200
-    except Exception as err:
-        logging.error(err, exc_info=True)
-        return _response(err, 400)
-
-def get_eventosnovos(filtro):
     usecase = create_usecases()
-    print(filtro)
-    IDEvento = filtro.get('IDEvento')
-    dataevento = filtro.get('dataevento')
     try:
-        dataevento = parse(dataevento)
+        evento = usecase.insert_acessoveiculo(evento)
     except Exception as err:
         logging.error(err, exc_info=True)
-        if IDEvento is None:
-            return _response('IDEvento e dataevento invalidos, '
-                             'ao menos um dos dois e necessario', 400)
-        dataevento = None
+        usecase.db_session.rollback()
+        return _response_for_exception(err)
+    return _response(evento.hash, 201)
+
+
+def get_acessoveiculo(codRecinto, IDEvento):
+    usecase = create_usecases()
     try:
-        tipoevento = filtro.get('tipoevento')
-        aclass = getattr(orm, tipoevento)
-    except AttributeError as err:
-        logging.error(err, exc_info=True)
-        return _response('Erro no campo tipoevento do filtro %s ' % str(err), 400)
-    fields = filtro.get('fields')
-    eventos = usecase.load_eventosnovos(aclass, IDEvento, dataevento, fields)
-    try:
-        if eventos is None or len(eventos) == 0:
-            if dataevento is None:
-                return _response('Sem eventos com ID maior que %d.' % IDEvento, 404)
-            return _response('Sem eventos com dataevento maior que %s.' % dataevento,
-                             404)
-        return dump_eventos(eventos)
+        evento = usecase.load_acessoveiculo(codRecinto, IDEvento)
+        return evento, 200
     except Exception as err:
         logging.error(err, exc_info=True)
-        return _response(err, 405)
-        return _response(err, 405)
+        return _response_for_exception(err)
+
 
 
 def filter_eventos(filtro):
@@ -394,3 +232,5 @@ def filter_eventos(filtro):
         return _response(err, 405)
 
 
+def get_eventosnovos():
+    pass

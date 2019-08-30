@@ -364,7 +364,7 @@ class ConteineresGate(BaseDumpable):
     )
 
 
-class ReboquesGate(BaseDumpable):
+class ReboqueGate(BaseDumpable):
     __tablename__ = 'reboquesgate'
     __table_args__ = {'sqlite_autoincrement': True}
     ID = Column(Integer, primary_key=True)
@@ -384,6 +384,14 @@ class ReboquesGate(BaseDumpable):
     acessoveiculo = relationship(
         'AcessoVeiculo', backref=backref('listaSemirreboque')
     )
+    def __init__(self, **kwargs):
+        self.placa = kwargs.get('placa')
+        self.ocrPlaca = kwargs.get('ocrPlaca')
+        self.vazio = kwargs.get('vazio')
+        self.avaria = kwargs.get('avaria')
+        self.cnpjCliente = kwargs.get('cnpjCliente')
+        self.nmCliente = kwargs.get('nmCliente')
+
 
 
 class ListaNfeGate(BaseDumpable):

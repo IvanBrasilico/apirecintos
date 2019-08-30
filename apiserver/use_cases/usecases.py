@@ -188,7 +188,7 @@ class UseCases:
             logging.info('Creating ConteinerUld %s..',
                          conteiner.get('num'))
             conteineruld = orm.ConteinerUld(inspecao=inspecaonaoinvasiva,
-                                              **conteiner)
+                                            **conteiner)
             self.db_session.add(conteineruld)
         listareboques = evento.get('listaSemirreboque', [])
         for reboque in listareboques:
@@ -196,7 +196,7 @@ class UseCases:
             logging.info('Creating Semirreboque %s..',
                          reboque.get('placa'))
             semirreboque = orm.Semirreboque(inspecao=inspecaonaoinvasiva,
-                                              **reboque)
+                                            **reboque)
             self.db_session.add(semirreboque)
         listamanifestos = evento.get('listaManifestos', [])
         for manifesto in listamanifestos:
@@ -204,7 +204,7 @@ class UseCases:
             logging.info('Creating manifesto %s..',
                          manifesto.get('num'))
             manifesto = orm.Manifesto(inspecao=inspecaonaoinvasiva,
-                                              **manifesto)
+                                      **manifesto)
             self.db_session.add(manifesto)
         anexos = evento.get('anexos', [])
         for anexo in anexos:
@@ -229,7 +229,7 @@ class UseCases:
         self.db_session.refresh(inspecaonaoinvasiva)
         return inspecaonaoinvasiva
 
-    def load_inspecaonaoinvasiva(self, codRecinto:str,
+    def load_inspecaonaoinvasiva(self, codRecinto: str,
                                  idEvento: str) -> orm.InspecaonaoInvasiva:
         """
         Retorna InspecaonaoInvasiva encontrada única no filtro recinto E IDEvento.
@@ -290,8 +290,6 @@ class UseCases:
                 )
         return inspecaonaoinvasiva_dump
 
-
-
     def insert_pesagemveiculocarga(self, evento: dict) -> orm.PesagemVeiculoCarga:
         logging.info('Creating PesagemVeiculoCarga %s..', evento.get('IDEvento'))
         pesagemveiculocarga = self.insert_evento(orm.PesagemVeiculoCarga, evento,
@@ -302,14 +300,13 @@ class UseCases:
                          reboque.get('placa'))
             print(reboque)
             semirreboque = orm.ReboquePesagemVeiculoCarga(pesagem=pesagemveiculocarga,
-                                              **reboque)
+                                                          **reboque)
             self.db_session.add(semirreboque)
         self.db_session.commit()
         self.db_session.refresh(pesagemveiculocarga)
         return pesagemveiculocarga
 
-
-    def load_pesagemveiculocarga(self, codRecinto:str,
+    def load_pesagemveiculocarga(self, codRecinto: str,
                                  idEvento: str) -> orm.PesagemVeiculoCarga:
         """
         Retorna PesagemVeiculoCarga encontrada única no filtro recinto E IDEvento.
@@ -334,26 +331,24 @@ class UseCases:
                 )
         return pesagemveiculocarga_dump
 
-
-    def insert_acessoveiculo(self, evento: dict) -> orm.PesagemVeiculoCarga:
+    def insert_acessoveiculo(self, evento: dict) -> orm.AcessoVeiculo:
         logging.info('Creating PesagemVeiculoCarga %s..', evento.get('IDEvento'))
-        acessoveiculo = self.insert_evento(orm.PesagemVeiculoCarga, evento,
-                                                 commit=False)
+        acessoveiculo = self.insert_evento(orm.AcessoVeiculo, evento,
+                                           commit=False)
         listareboques = evento.get('listaSemirreboque', [])
         for reboque in listareboques:
             logging.info('Creating Semirreboque %s..',
                          reboque.get('placa'))
             print(reboque)
-            semirreboque = orm.ReboquePesagemVeiculoCarga(acessoveiculo=acessoveiculo,
-                                              **reboque)
+            semirreboque = orm.ReboqueGate(acessoveiculo=acessoveiculo,
+                                           **reboque)
             self.db_session.add(semirreboque)
         self.db_session.commit()
         self.db_session.refresh(acessoveiculo)
         return acessoveiculo
 
-
-    def load_acessoveiculo(self, codRecinto:str,
-                                 idEvento: str) -> orm.PesagemVeiculoCarga:
+    def load_acessoveiculo(self, codRecinto: str,
+                           idEvento: str) -> orm.AcessoVeiculo:
         """
         Retorna PesagemVeiculoCarga encontrada única no filtro recinto E IDEvento.
 
@@ -361,11 +356,11 @@ class UseCases:
         :param IDEvento: ID do Evento informado pelo recinto
         :return: instância objeto orm.InspecaonaoInvasiva
         """
-        acessoveiculo = orm.PesagemVeiculoCarga.query.filter(
-            orm.PesagemVeiculoCarga.idEvento == idEvento,
-            orm.PesagemVeiculoCarga.codRecinto == codRecinto
+        acessoveiculo = orm.AcessoVeiculo.query.filter(
+            orm.AcessoVeiculo.idEvento == idEvento,
+            orm.AcessoVeiculo.codRecinto == codRecinto
         ).outerjoin(
-            orm.ReboquePesagemVeiculoCarga
+            orm.ReboqueGate
         ).one()
         acessoveiculo_dump = acessoveiculo.dump()
         if acessoveiculo.listaSemirreboque and \
@@ -376,7 +371,6 @@ class UseCases:
                     semirreboque.dump(exclude=['ID', 'pesagem', 'pesagem_id'])
                 )
         return acessoveiculo_dump
-
 
     def load_arquivo_eventos(self, file):
         """Valida e carrega arquivo JSON de eventos."""
