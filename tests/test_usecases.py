@@ -48,7 +48,7 @@ class UseCaseTestCase(BaseTestCase):
         print(sorted(evento_banco_load.items(), key=lambda x: x[0]))
         self.compara_eventos(evento, evento_banco_load)
 
-    def tes_acessoveiculo(self):
+    def test_acessoveiculo(self):
         evento = self.open_json_test_case(orm.AcessoVeiculo)
         evento_banco = self.usecase.insert_acessoveiculo(evento)
         evento_banco_load = self.usecase.load_acessoveiculo(

@@ -14,6 +14,12 @@
 	"contingencia": false,
 
 	"placaCavalo": "string",
+	"listaSemirreboque": [
+		{
+			"placa": "string",
+			"tara": 0
+		}
+	],
 	"listaConteineresUld": [
 		{
 			"num": "string",
@@ -27,12 +33,6 @@
 	"Dutos": "string",
 	"idBalanca": "id georreferenciamento 04.23",
 	"idCamera": "id georreferenciamento 04.23",
-	"listaSemirreboque": [
-		{
-			"placa": "string",
-			"tara": 0
-		}
-	],
 	"listaManifestos": [
 		{
 			"num": "string",

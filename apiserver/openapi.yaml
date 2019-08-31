@@ -168,16 +168,22 @@ paths:
         409:
           description: Evento repetido ou outro erro de integridade
           content: {}
-  /pesagemveiculocarga/{IDEvento}:
+  /pesagemveiculocarga/{codRecinto}/{IDEvento}:
     get:
       operationId: api.get_pesagemveiculocarga
       parameters:
+      - name: codRecinto
+        in: path
+        description: ID do Evento no Sistema original
+        required: true
+        schema:
+          type: string
       - name: IDEvento
         in: path
         description: ID do Evento no Sistema original
         required: true
         schema:
-          type: integer
+          type: string
       responses:
         200:
           description: Evento Base
@@ -215,16 +221,22 @@ paths:
         409:
           description: Evento repetido ou outro erro de integridade
           content: {}
-  /inspecaonaoinvasiva/{IDEvento}:
+  /inspecaonaoinvasiva/{codRecinto}/{IDEvento}:
     get:
       operationId: api.get_inspecaonaoinvasiva
       parameters:
+      - name: codRecinto
+        in: path
+        description: ID do Evento no Sistema original
+        required: true
+        schema:
+          type: string
       - name: IDEvento
         in: path
         description: ID do Evento no Sistema original
         required: true
         schema:
-          type: integer
+          type: string
       responses:
         200:
           description: Evento Base
@@ -324,13 +336,13 @@ components:
     Anexos:
       type: object
       properties:
-        nomearquivo:
+        nomeArquivo:
           type: string
-        datacriacao:
+        dtHrScaneamento:
           type: string
           description: Data e Hora da criacao do arquivo
           format: date-time
-        datamodificacao:
+        dtHrModifArquivo:
           type: string
           description: Data e Hora da ultima modificacao do arquivo
           format: date-time
@@ -338,6 +350,17 @@ components:
           type: string
         content:
           type: string
+        coordenadasAlerta:
+          type: object
+          properties:
+            x:
+              type: integer
+            y:
+              type: integer
+            x2:
+              type: integer
+            y2:
+              type: integer
     Evento:
       type: object
       properties:
@@ -492,30 +515,56 @@ components:
       - $ref: '#/components/schemas/Evento'
       - type: object
         properties:
-          documentotransporte:
-            type: string
-            description: Numero do documento que embasa o Transporte
-          tipodocumentotransporte:
-            $ref: '#/components/schemas/TipoDocumentoTransporte'
-          numero:
-            type: string
-            description: Numero do conteiner maritimo ou do ULD aereo
-          placa:
+        properties:
+          listaManifestos:
+            type: array
+            items:
+              type: object
+              properties:
+                num:
+                  type: string
+                  description: Numero do documento de transporte
+                tipo:
+                  $ref: '#/components/schemas/TipoDocumentoTransporte'
+          listaSemirreboque:
+            type: array
+            items:
+              type: object
+              properties:
+                placa:
+                  type: string
+                  description: Placa do semireboque
+                tara:
+                  type: integer
+          listaConteineresUld:
+            type: array
+            items:
+              type: object
+              properties:
+                num:
+                  type: string
+                  description: Numero do conteiner
+                tara:
+                  type: integer
+          placaCavalo:
             type: string
             description: Placa do caminhao/truck/cavalo
-          placasemireboque:
-            type: string
-            description: Placa semireboque em caso de carregamento
-          pesobrutodeclarado:
+          taraConjunto:
+            type: integer
+            description: Captura realizada automaticamente pelo OCR, sem intervencao manual ou digitacao
+          idBalanca:
+            type: integer
+          idCamera:
+            type: integer
+          pesoBrutoManifesto:
             type: integer
             description: Peso bruto declarado nos documentos de transporte em kg
-          taraconjunto:
-            type: integer
-            description: Peso do conjunto cavalo-carreta retirado da balanca e cadastrado no Recinto
-          pesobalanca:
+          Dutos:
+            type: string
+          pesoBrutoBalanca:
             type: integer
             description: Peso do conjunto cavalo-carreta-carga retirado da balanca
-          capturaautomatica:
+          capturaAutoPeso:
             type: boolean
             description: Captura realizada automaticamente pela balanca, sem intervencao manual ou digitacao
     InspecaonaoInvasiva:
@@ -568,28 +617,6 @@ components:
             description: Outros arquivos (XML, JSON, imagens, etc) gerados pelo equipamento
             items:
               $ref: '#/components/schemas/Anexos'
-          imgScanner:
-            type: object
-            properties:
-              dtHrScaneamento:
-                type: string
-              dtHrModifArquivo:
-                type: string
-              nmArquivo:
-                type: string
-              coordenadasAlerta:
-                type: object
-                properties:
-                  x:
-                    type: integer
-                  y:
-                    type: integer
-                  x2:
-                    type: integer
-                  y2:
-                    type: integer
-              img:
-                type: string
           idScanner:
             type: integer
           idCamera:
