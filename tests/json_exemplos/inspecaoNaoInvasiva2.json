@@ -4,22 +4,38 @@
   "contingencia": true,
   "cpfOperOcor": "string",
   "cpfOperReg": "string",
-  "dtHrOcorrencia": "2019-08-31T15:34:26.546Z",
-  "dtHrRegistro": "2019-08-31T15:34:26.546Z",
-  "dtHrTransmissao": "2019-08-31T15:34:26.546Z",
+  "dtHrOcorrencia": "2019-08-31T15:41:30.521Z",
+  "dtHrRegistro": "2019-08-31T15:41:30.521Z",
+  "dtHrTransmissao": "2019-08-31T15:41:30.521Z",
   "hash": "string",
   "idEvento": "string",
   "idEventoRetif": "string",
   "ip": "string",
   "retificador": true,
-  "Dutos": "string",
-  "capturaAutoPeso": true,
-  "idBalanca": 0,
+  "anexos": [
+    {
+      "content": "string",
+      "contentType": "string",
+      "coordenadasAlerta": {
+        "x": 0,
+        "x2": 0,
+        "y": 0,
+        "y2": 0
+      },
+      "dtHrModifArquivo": "2019-08-31T15:41:30.521Z",
+      "dtHrScaneamento": "2019-08-31T15:41:30.521Z",
+      "nomeArquivo": "string"
+    }
+  ],
   "idCamera": 0,
+  "idScanner": 0,
+  "listaCarga": [
+    "string"
+  ],
   "listaConteineresUld": [
     {
       "num": "string",
-      "tara": 0
+      "ocrNum": true
     }
   ],
   "listaManifestos": [
@@ -30,12 +46,10 @@
   ],
   "listaSemirreboque": [
     {
-      "placa": "string",
-      "tara": 0
+      "ocrPlaca": true,
+      "placa": "string"
     }
   ],
-  "pesoBrutoBalanca": 0,
-  "pesoBrutoManifesto": 0,
-  "placaCavalo": "string",
-  "taraConjunto": 0
+  "ocrPlaca": true,
+  "placa": "string"
 }
