@@ -172,7 +172,7 @@ class InspecaonaoInvasiva(EventoBase):
 
 class AnexoBase(BaseDumpable):
     __abstract__ = True
-    nomearquivo = Column(String(100), default='')
+    nomeArquivo = Column(String(100), default='')
     contentType = Column(String(40), default='')
 
     def __init__(self, nomearquivo='', contentType=''):
@@ -241,13 +241,13 @@ class AnexoInspecao(AnexoBase):
     __tablename__ = 'anexosinspecao'
     __table_args__ = {'sqlite_autoincrement': True}
     ID = Column(Integer, primary_key=True)
-    datacriacao = Column(DateTime())
-    datamodificacao = Column(DateTime())
+    dtHrModifArquivo = Column(DateTime())
+    dtHrScaneamento = Column(DateTime())
     inspecao_id = Column(Integer, ForeignKey('inspecoesnaoinvasivas.ID'))
     inspecao = relationship(
         'InspecaonaoInvasiva', backref=backref('anexos')
     )
-
+    # TODO: Fazer coordenadas
     def __init__(self, **kwargs):
         superkwargs = dict([
             (k, v) for k, v in kwargs.items() if k in vars(AnexoBase).keys()

@@ -1,34 +1,27 @@
 {
+  "ID": 1,
+  "anexos": [
+    {
+      "contentType": "string",
+      "datacriacao": null,
+      "datamodificacao": null,
+      "nomearquivo": ""
+    }
+  ],
   "cnpjTransmissor": "string",
   "codRecinto": "string",
   "contingencia": true,
   "cpfOperOcor": "string",
   "cpfOperReg": "string",
-  "dtHrOcorrencia": "2019-08-31T15:41:30.521Z",
-  "dtHrRegistro": "2019-08-31T15:41:30.521Z",
-  "dtHrTransmissao": "2019-08-31T15:41:30.521Z",
+  "dtHrOcorrencia": "2019-08-31T15:40:58.790000Z",
+  "dtHrRegistro": "2019-08-31T15:40:58.790000Z",
+  "dtHrTransmissao": "2019-08-31T15:40:58.790000Z",
   "hash": "string",
+  "idCamera": 0,
   "idEvento": "string",
   "idEventoRetif": "string",
-  "ip": "string",
-  "retificador": true,
-  "anexos": [
-    {
-      "content": "string",
-      "contentType": "string",
-      "coordenadasAlerta": {
-        "x": 0,
-        "x2": 0,
-        "y": 0,
-        "y2": 0
-      },
-      "dtHrModifArquivo": "2019-08-31T15:41:30.521Z",
-      "dtHrScaneamento": "2019-08-31T15:41:30.521Z",
-      "nomeArquivo": "string"
-    }
-  ],
-  "idCamera": 0,
   "idScanner": 0,
+  "ip": "string",
   "listaCarga": [
     "string"
   ],
@@ -38,12 +31,6 @@
       "ocrNum": true
     }
   ],
-  "listaManifestos": [
-    {
-      "num": "string",
-      "tipo": "CE"
-    }
-  ],
   "listaSemirreboque": [
     {
       "ocrPlaca": true,
@@ -51,5 +38,6 @@
     }
   ],
   "ocrPlaca": true,
-  "placa": "string"
+  "placa": "string",
+  "retificador": true
 }
