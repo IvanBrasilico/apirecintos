@@ -106,7 +106,7 @@ class PesagemVeiculoCarga(EventoBase):
         self.capturaAutoPeso = kwargs.get('capturaAutoPeso')
         self.Dutos = kwargs.get('Dutos')
         self.idCamera = kwargs.get('idCamera')
-        self.idScanner = kwargs.get('idScanner')
+        self.idBalanca = kwargs.get('idBalanca')
 
 
 class ReboquePesagemVeiculoCarga(BaseDumpable):
