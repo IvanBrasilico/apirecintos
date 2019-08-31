@@ -13,12 +13,15 @@
 	"idEventoRetif": "string",
 	"contingencia": false,
 
-	"pesoBrutoManifesto": 0,
 	"placaCavalo": "string",
+	"listaConteineresUld": [
+		{
+			"num": "string",
+			"tara": integer
+		}
+	],
 	"taraConjunto": 0,
-	"numeroConteiner": "string",
-	"tipoConteiner": "string",
-	"taraConteiner": 0,
+	"pesoBrutoManifesto": 0,
 	"pesoBrutoBalanca": 0,
 	"capturaAutoPeso": true,
 	"Dutos": "string",

@@ -306,6 +306,15 @@ class UseCases:
         self.db_session.refresh(pesagemveiculocarga)
         return pesagemveiculocarga
 
+    def load_filhos(self, filhos, pexclude=['ID']):
+        result = []
+        if filhos and len(filhos) > 0:
+            for item in filhos:
+                result.append(
+                    item.dump(exclude=pexclude)
+                )
+        return result
+
     def load_pesagemveiculocarga(self, codRecinto: str,
                                  idEvento: str) -> orm.PesagemVeiculoCarga:
         """
@@ -315,20 +324,24 @@ class UseCases:
         :param IDEvento: ID do Evento informado pelo recinto
         :return: instância objeto orm.InspecaonaoInvasiva
         """
-        pesagemveiculocarga = orm.PesagemVeiculoCarga.query.filter(
+        evento = orm.PesagemVeiculoCarga.query.filter(
             orm.PesagemVeiculoCarga.idEvento == idEvento,
             orm.PesagemVeiculoCarga.codRecinto == codRecinto
         ).outerjoin(
             orm.ReboquePesagemVeiculoCarga
         ).one()
-        pesagemveiculocarga_dump = pesagemveiculocarga.dump()
-        if pesagemveiculocarga.listaSemirreboque and \
-                len(pesagemveiculocarga.listaSemirreboque) > 0:
+        pesagemveiculocarga_dump = evento.dump()
+        lexclude = ['ID', 'pesagem', 'pesagem_id']
+        if evento.listaSemirreboque and \
+                len(evento.listaSemirreboque) > 0:
             pesagemveiculocarga_dump['listaSemirreboque'] = []
-            for semirreboque in pesagemveiculocarga.listaSemirreboque:
+            for semirreboque in evento.listaSemirreboque:
                 pesagemveiculocarga_dump['listaSemirreboque'].append(
                     semirreboque.dump(exclude=['ID', 'pesagem', 'pesagem_id'])
                 )
+        pesagemveiculocarga_dump['listaConteineresUld'] = \
+            self.load_filhos(evento.listaConteineresUld,
+                             exclude=lexclude)
         return pesagemveiculocarga_dump
 
     def insert_acessoveiculo(self, evento: dict) -> orm.AcessoVeiculo:

@@ -87,9 +87,6 @@ class PesagemVeiculoCarga(EventoBase):
     ID = Column(Integer, primary_key=True)
     placaCavalo = Column(String(7))
     taraConjunto = Column(Integer())
-    numeroConteiner = Column(String(11))
-    tipoConteiner = Column(String)
-    taraConteiner = Column(Integer())
     pesoBrutoManifesto = Column(Integer())
     pesoBrutoBalanca = Column(Integer())
     capturaAutoPeso = Column(Boolean())
@@ -104,9 +101,6 @@ class PesagemVeiculoCarga(EventoBase):
         super().__init__(**superkwargs)
         self.placaCavalo = kwargs.get('placaCavalo')
         self.taraConjunto = kwargs.get('taraConjunto')
-        self.numeroConteiner = kwargs.get('numeroConteiner')
-        self.tipoConteiner = kwargs.get('tipoConteiner')
-        self.taraConteiner = kwargs.get('taraConteiner')
         self.pesoBrutoManifesto = kwargs.get('pesoBrutoManifesto')
         self.pesoBrutoBalanca = kwargs.get('pesoBrutoBalanca')
         self.capturaAutoPeso = kwargs.get('capturaAutoPeso')
@@ -125,6 +119,35 @@ class ReboquePesagemVeiculoCarga(BaseDumpable):
     pesagem = relationship(
         'PesagemVeiculoCarga', backref=backref('listaSemirreboque')
     )
+
+
+class ConteinerPesagemVeiculoCarga(BaseDumpable):
+    __tablename__ = 'conteineresespesagemveiculocarga'
+    __table_args__ = {'sqlite_autoincrement': True}
+    ID = Column(Integer, primary_key=True)
+    num = Column(String(7))
+    tara = Column(Integer)
+    pesagem_id = Column(Integer, ForeignKey('pesagensveiculocarga.ID'))
+    pesagem = relationship(
+        'PesagemVeiculoCarga', backref=backref('listaConteineresUld')
+    )
+
+
+class ManifestoPesagemVeiculoCarga(BaseDumpable):
+    __tablename__ = 'listamanifestos'
+    __table_args__ = {'sqlite_autoincrement': True}
+    ID = Column(Integer, primary_key=True)
+    num = Column(String(100))
+    tipo = Column(String)
+    pesagem_id = Column(Integer, ForeignKey('pesagensveiculocarga.ID'))
+    pesagem = relationship(
+        'PesagemVeiculoCarga', backref=backref('listaManifestos')
+    )
+
+    def __init__(self, **kwargs):
+        self.num = kwargs.get('num')
+        self.tipo = kwargs.get('tipo')
+        self.pesagem = kwargs.get('pesagem')
 
 
 class InspecaonaoInvasiva(EventoBase):
@@ -315,6 +338,7 @@ class AcessoVeiculo(EventoBase):
     oogPeso = Column(Boolean)
     oogDimensao = Column(Boolean)
     codRecintoDestino = Column(String)
+
     # dataliberacao = Column(DateTime)
     # dataagendamento = Column(DateTime)
 
@@ -336,8 +360,6 @@ class AcessoVeiculo(EventoBase):
         self.oogPeso = kwargs.get('oogPeso')
         self.oogDimensao = kwargs.get('oogDimensao')
         self.codRecintoDestino = kwargs.get('codRecintoDestino')
-
-
 
 
 class ConteineresGate(BaseDumpable):
@@ -384,6 +406,7 @@ class ReboqueGate(BaseDumpable):
     acessoveiculo = relationship(
         'AcessoVeiculo', backref=backref('listaSemirreboque')
     )
+
     def __init__(self, **kwargs):
         self.placa = kwargs.get('placa')
         self.ocrPlaca = kwargs.get('ocrPlaca')
@@ -391,7 +414,6 @@ class ReboqueGate(BaseDumpable):
         self.avaria = kwargs.get('avaria')
         self.cnpjCliente = kwargs.get('cnpjCliente')
         self.nmCliente = kwargs.get('nmCliente')
-
 
 
 class ListaNfeGate(BaseDumpable):
