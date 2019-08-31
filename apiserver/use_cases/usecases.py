@@ -108,7 +108,7 @@ class UseCases:
                 query = query.options(load_only(fields))
             return query.all()
 
-    def get_filhos(self, osfilhos, campos_excluidos=[]):
+    def load_filhos(self, osfilhos, campos_excluidos=['ID']):
         filhos = []
         if osfilhos and len(osfilhos) > 0:
             for filho in osfilhos:
@@ -118,17 +118,19 @@ class UseCases:
                 )
         return filhos
 
-    def insert_filhos(self, oevento, osfilhos, classefilho, fk_no_filho):
+    def insert_filhos(self, idevento, osfilhos, classefilho, fk_no_filho):
         """Processa lista no campo 'campofilhos' para inserir aclasse
 
-        :param oevento: dict com valores recebidos do JSON
+        :param idevento: ID do evento pai (PK)
         :param campofilhos: nome do campo que contem filhos do evento
         :param aclasse: Nome da Classe a criar
-        :param fk_no_filho: Nome do campo que referencia pai na Classe filha
+        :param fk_no_filho: Nome do campo que referencia pai na Classe filha (FK)
         :return: None, apenas levanta exceção se acontecer
         """
         for filho in osfilhos:
-            params = {**{fk_no_filho: oevento}, **filho}
+            params = {**{fk_no_filho: idevento}, **filho}
+            print('filho', filho)
+            print('params', params)
             novofilho = classefilho(**params)
             self.db_session.add(novofilho)
 
@@ -302,18 +304,12 @@ class UseCases:
             semirreboque = orm.ReboquePesagemVeiculoCarga(pesagem=pesagemveiculocarga,
                                                           **reboque)
             self.db_session.add(semirreboque)
+        listaconteineres = evento.get('listaConteineresUld', [])
+        self.insert_filhos(pesagemveiculocarga.ID, listaconteineres,
+                           orm.ConteinerPesagemVeiculoCarga, 'pesagem_id')
         self.db_session.commit()
         self.db_session.refresh(pesagemveiculocarga)
         return pesagemveiculocarga
-
-    def load_filhos(self, filhos, pexclude=['ID']):
-        result = []
-        if filhos and len(filhos) > 0:
-            for item in filhos:
-                result.append(
-                    item.dump(exclude=pexclude)
-                )
-        return result
 
     def load_pesagemveiculocarga(self, codRecinto: str,
                                  idEvento: str) -> orm.PesagemVeiculoCarga:
@@ -340,8 +336,7 @@ class UseCases:
                     semirreboque.dump(exclude=['ID', 'pesagem', 'pesagem_id'])
                 )
         pesagemveiculocarga_dump['listaConteineresUld'] = \
-            self.load_filhos(evento.listaConteineresUld,
-                             exclude=lexclude)
+            self.load_filhos(evento.listaConteineresUld, lexclude)
         return pesagemveiculocarga_dump
 
     def insert_acessoveiculo(self, evento: dict) -> orm.AcessoVeiculo:

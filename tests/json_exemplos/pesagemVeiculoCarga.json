@@ -17,7 +17,7 @@
 	"listaConteineresUld": [
 		{
 			"num": "string",
-			"tara": integer
+			"tara": 1
 		}
 	],
 	"taraConjunto": 0,

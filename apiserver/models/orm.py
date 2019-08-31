@@ -122,7 +122,7 @@ class ReboquePesagemVeiculoCarga(BaseDumpable):
 
 
 class ConteinerPesagemVeiculoCarga(BaseDumpable):
-    __tablename__ = 'conteineresespesagemveiculocarga'
+    __tablename__ = 'conteinerespesagemveiculocarga'
     __table_args__ = {'sqlite_autoincrement': True}
     ID = Column(Integer, primary_key=True)
     num = Column(String(7))
@@ -134,7 +134,7 @@ class ConteinerPesagemVeiculoCarga(BaseDumpable):
 
 
 class ManifestoPesagemVeiculoCarga(BaseDumpable):
-    __tablename__ = 'listamanifestos'
+    __tablename__ = 'listamanifestospesagem'
     __table_args__ = {'sqlite_autoincrement': True}
     ID = Column(Integer, primary_key=True)
     num = Column(String(100))
