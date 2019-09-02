@@ -144,10 +144,6 @@ class ManifestoPesagemVeiculoCarga(BaseDumpable):
         'PesagemVeiculoCarga', backref=backref('listaManifestos')
     )
 
-    def __init__(self, **kwargs):
-        self.num = kwargs.get('num')
-        self.tipo = kwargs.get('tipo')
-        self.pesagem = kwargs.get('pesagem')
 
 
 class InspecaonaoInvasiva(EventoBase):
@@ -175,8 +171,8 @@ class AnexoBase(BaseDumpable):
     nomeArquivo = Column(String(100), default='')
     contentType = Column(String(40), default='')
 
-    def __init__(self, nomearquivo='', contentType=''):
-        self.nomearquivo = nomearquivo
+    def __init__(self, nomeArquivo='', contentType=''):
+        self.nomeArquivo = nomeArquivo
         self.contentType = contentType
 
     def monta_caminho_arquivo(self, basepath, eventobase):
@@ -201,8 +197,8 @@ class AnexoBase(BaseDumpable):
             True se sucesso, False se houve erro
         """
         if filename is None:
-            if self.nomearquivo:
-                filename = self.nomearquivo
+            if self.nomeArquivo:
+                filename = self.nomeArquivo
         if not file:
             raise AttributeError('Arquivo vazio')
         if not filename:
@@ -220,21 +216,22 @@ class AnexoBase(BaseDumpable):
             logging.error(str(err), exc_info=True)
             raise (err)
         self.contentType = mimetypes.guess_type(filename)[0]
-        self.nomearquivo = filename
+        self.nomeArquivo = filename
         return 'Arquivo salvo no anexo'
 
     def load_file(self, basepath, evento):
-        if not self.nomearquivo:
+        if not self.nomeArquivo:
             return ''
         try:
             filepath = self.monta_caminho_arquivo(basepath, evento)
-            content = open(os.path.join(filepath, self.nomearquivo), 'rb')
+            content = open(os.path.join(filepath, self.nomeArquivo), 'rb')
             base64_bytes = b64encode(content.read())
             base64_string = base64_bytes.decode('utf-8')
         except FileNotFoundError as err:
             logging.error(str(err), exc_info=True)
             base64_string = None
         self.content = base64_string
+
 
 
 class AnexoInspecao(AnexoBase):
@@ -268,6 +265,20 @@ class AnexoInspecao(AnexoBase):
     @classmethod
     def create(cls, parent):
         return AnexoInspecao(inspecao=parent)
+
+
+class CoordenadasAlerta(BaseDumpable):
+    __tablename__ = 'coordenadasanexoinspecao'
+    __table_args__ = {'sqlite_autoincrement': True}
+    ID = Column(Integer, primary_key=True)
+    x = Column(Integer)
+    y = Column(Integer)
+    x2 = Column(Integer)
+    y2 = Column(Integer)
+    anexo_id = Column(Integer, ForeignKey('anexosinspecao.ID'))
+    anexo = relationship(
+        'AnexoInspecao', backref=backref('coordenadasAlerta')
+    )
 
 
 class IdentificadorInspecao(BaseDumpable):
@@ -316,10 +327,6 @@ class Manifesto(BaseDumpable):
         'InspecaonaoInvasiva', backref=backref('listaManifestos')
     )
 
-    def __init__(self, **kwargs):
-        self.num = kwargs.get('num')
-        self.tipo = kwargs.get('tipo')
-
 
 class AcessoVeiculo(EventoBase):
     __tablename__ = 'acessosveiculo'
@@ -366,23 +373,25 @@ class ConteineresGate(BaseDumpable):
     __tablename__ = 'conteineresgate'
     __table_args__ = {'sqlite_autoincrement': True}
     ID = Column(Integer, primary_key=True)
-    numero = Column(String(11))
+    num = Column(String(11))
+    tipo = Column(String)
+    ocrNum = Column(Boolean)
     vazio = Column(Boolean)
+    numBooking = Column(String(30))
+    portoDescarga = Column(String(30))
+    destinoCarga = Column(String(30))
+    imoNavio = Column(String(30))
+    cnpjCliente = Column(String(14))
+    nmCliente = Column(String(30))
     lacres = Column(String(30))
     lacresverificados = Column(String(30))
     localsif = Column(String(20))
     lacressif = Column(String(30))
     lacressifverificados = Column(String(30))
-    portodescarga = Column(String(30))
-    paisdestino = Column(String(30))
-    navioembarque = Column(String(30))
-    numerobooking = Column(String(30))
     avarias = Column(String(100))
-    cpfcnpjcliente = Column(String(14))
-    nomecliente = Column(String(30))
     acessoveiculo_id = Column(Integer, ForeignKey('acessosveiculo.ID'))
     acessoveiculo = relationship(
-        'AcessoVeiculo', backref=backref('conteineres')
+        'AcessoVeiculo', backref=backref('listaConteineresUld')
     )
 
 
@@ -393,20 +402,20 @@ class ReboqueGate(BaseDumpable):
     placa = Column(String)
     ocrPlaca = Column(Boolean())
     vazio = Column(Boolean())
-    avaria = Column(Boolean())
     cnpjCliente = Column(String(14))
     nmCliente = Column(String(50))
-    # avarias = Column(String(50))
-    # lacres = Column(String(50))
-    # lacresverificados = Column(String(30))
-    # localsif = Column(String(20))
-    # lacressif = Column(String(30))
-    # lacressifverificados = Column(String(30))
+    avarias = Column(String(50))
+    lacres = Column(String(50))
+    lacresverificados = Column(String(30))
+    localsif = Column(String(20))
+    lacressif = Column(String(30))
+    lacressifverificados = Column(String(30))
     acessoveiculo_id = Column(Integer, ForeignKey('acessosveiculo.ID'))
     acessoveiculo = relationship(
         'AcessoVeiculo', backref=backref('listaSemirreboque')
     )
 
+    """
     def __init__(self, **kwargs):
         self.placa = kwargs.get('placa')
         self.ocrPlaca = kwargs.get('ocrPlaca')
@@ -414,16 +423,60 @@ class ReboqueGate(BaseDumpable):
         self.avaria = kwargs.get('avaria')
         self.cnpjCliente = kwargs.get('cnpjCliente')
         self.nmCliente = kwargs.get('nmCliente')
+    """
+
+class ManifestoGate(BaseDumpable):
+    __tablename__ = 'listamanifestosgate'
+    __table_args__ = {'sqlite_autoincrement': True}
+    ID = Column(Integer, primary_key=True)
+    num = Column(String(100))
+    tipo = Column(String)
+    acessoveiculo_id = Column(Integer, ForeignKey('acessosveiculo.ID'))
+    acessoveiculo = relationship(
+        'AcessoVeiculo', backref=backref('listaManifestos')
+    )
+
+    """
+    def __init__(self, **kwargs):
+        self.num = kwargs.get('num')
+        self.tipo = kwargs.get('tipo')
+        self.acessoveiculo_id = kwargs.get('acessoveiculo_id')
+    """
 
 
-class ListaNfeGate(BaseDumpable):
+class DiDueGate(BaseDumpable):
+    __tablename__ = 'listadiduegate'
+    __table_args__ = {'sqlite_autoincrement': True}
+    ID = Column(Integer, primary_key=True)
+    num = Column(String(100))
+    tipo = Column(String)
+    acessoveiculo_id = Column(Integer, ForeignKey('acessosveiculo.ID'))
+    acessoveiculo = relationship(
+        'AcessoVeiculo', backref=backref('listaDiDue')
+    )
+
+class ChassiGate(BaseDumpable):
+    __tablename__ = 'listachassigate'
+    __table_args__ = {'sqlite_autoincrement': True}
+    ID = Column(Integer, primary_key=True)
+    num = Column(String(50))
+    acessoveiculo_id = Column(Integer, ForeignKey('acessosveiculo.ID'))
+    acessoveiculo = relationship(
+        'AcessoVeiculo', backref=backref('listaChassi')
+    )
+
+    def __init__(self, acessoveiculo_id, num):
+        self.acessoveiculo_id = acessoveiculo_id
+        self.num = num
+
+class NfeGate(BaseDumpable):
     __tablename__ = 'listanfegate'
     __table_args__ = {'sqlite_autoincrement': True}
     ID = Column(Integer, primary_key=True)
     chavenfe = Column(String(30))
     acessoveiculo_id = Column(Integer, ForeignKey('acessosveiculo.ID'))
     acessoveiculo = relationship(
-        'AcessoVeiculo', backref=backref('listanfe')
+        'AcessoVeiculo', backref=backref('listaNfe')
     )
 
 

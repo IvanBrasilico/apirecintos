@@ -272,8 +272,8 @@ components:
       type: string
       description: Operação de entrada ou de saída de carga
       enum:
-      - Entrada
-      - Saida
+      - E
+      - S
     Autoridade:
       type: string
       description: Sigla da autoridade
@@ -351,16 +351,18 @@ components:
         content:
           type: string
         coordenadasAlerta:
-          type: object
-          properties:
-            x:
-              type: integer
-            y:
-              type: integer
-            x2:
-              type: integer
-            y2:
-              type: integer
+            type: array
+            items:
+              type: object
+              properties:
+                x:
+                  type: integer
+                y:
+                  type: integer
+                x2:
+                  type: integer
+                y2:
+                  type: integer
     Evento:
       type: object
       properties:
@@ -444,77 +446,103 @@ components:
           idCamera:
             type: string
             description: Identificador da Camera de ocorrencia do Evento
-          listanfe:
-            type: array
-            items:
-              type: object
-              properties:
-                chavenfe:
-                  type: string
-          reboques:
+          listaSemirreboque:
             type: array
             items:
               type: object
               properties:
                 placa:
                   type: string
+                ocrPlaca:
+                  type: boolean
                 vazio:
                   type: boolean
+                avarias:
+                  type: string
+                cnpjCliente:
+                  type: string
+                nmCliente:
+                  type: string
                 lacres:
                   type: string
                 lacressif:
                   type: string
                 localsif:
                   type: string
-                cnpjestadia:
-                  type: string
-                nomeestadia:
-                  type: string
                 lacresverificados:
                   type: string
                 lacressifverificados:
                   type: string
-                avarias:
-                  type: string
-          conteineres:
+          listaConteineresUld:
             type: array
             items:
               type: object
               properties:
-                numero:
+                num:
                   type: string
+                tipo:
+                  type: string
+                ocrNum:
+                  type: boolean
                 vazio:
                   type: boolean
+                numBooking:
+                  type: string
+                avarias:
+                  type: string
+                portoDescarga:
+                  type: string
+                destinoCarga:
+                  type: string
+                  description: Pais destino da carga
+                imoNavio:
+                  type: string
+                cnpjCliente:
+                  type: string
+                nmCliente:
+                  type: string
                 lacres:
                   type: string
                 lacressif:
                   type: string
                 localsif:
                   type: string
-                portodescarga:
-                  type: string
-                paisdestino:
-                  type: string
-                  description: Pais destino da carga
-                navioembarque:
-                  type: string
-                cpfcnpjcliente:
-                  type: string
-                nomecliente:
-                  type: string
-                numerobooking:
-                  type: string
                 lacresverificados:
                   type: string
                 lacressifverificados:
                   type: string
-                avarias:
+          listaManifestos:
+            type: array
+            items:
+              type: object
+              properties:
+                num:
                   type: string
+                  description: Numero do documento de transporte
+                tipo:
+                  $ref: '#/components/schemas/TipoDocumentoTransporte'
+          listaDiDue:
+            type: array
+            items:
+              type: object
+              properties:
+                num:
+                  type: string
+                  description: Numero da declaracao aduaneira
+                tipo:
+                  $ref: '#/components/schemas/TipoDeclaracaoAduaneira'
+          listaChassi:
+            type: array
+            items:
+              type: string
+          listaNfe:
+            type: array
+            items:
+              type: string
     PesagemVeiculoCarga:
       allOf:
       - $ref: '#/components/schemas/Evento'
       - type: object
-        properties:
         properties:
           listaManifestos:
             type: array

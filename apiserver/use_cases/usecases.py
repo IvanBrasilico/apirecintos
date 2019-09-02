@@ -205,9 +205,9 @@ class UseCases:
             manifesto['inspecao_id'] = inspecaonaoinvasiva.ID
             logging.info('Creating manifesto %s..',
                          manifesto.get('num'))
-            manifesto = orm.Manifesto(inspecao=inspecaonaoinvasiva,
-                                      **manifesto)
-            self.db_session.add(manifesto)
+            ormmanifesto = orm.Manifesto(inspecao=inspecaonaoinvasiva,
+                                         **manifesto)
+            self.db_session.add(ormmanifesto)
         anexos = evento.get('anexos', [])
         for anexo in anexos:
             anexo['inspecao_id'] = inspecaonaoinvasiva.ID
@@ -219,6 +219,15 @@ class UseCases:
             if anexo.get('content'):
                 anexoinspecao.save_file(self.basepath, content)
             self.db_session.add(anexoinspecao)
+            print(anexo.get('coordenadasAlerta'))
+            if anexo.get('coordenadasAlerta'):
+                self.db_session.flush()
+                self.db_session.refresh(anexoinspecao)
+                self.insert_filhos(anexoinspecao.ID,
+                                   anexo.get('coordenadasAlerta'),
+                                   orm.CoordenadasAlerta,
+                                   'anexo_id')
+
         identificadores = evento.get('listaCarga', [])
         for identificador in identificadores:
             logging.info('Creating identificadorinspecaonaoinvasiva %s..',
@@ -239,6 +248,7 @@ class UseCases:
         :param IDEvento: ID do Evento informado pelo recinto
         :return: instância objeto orm.InspecaonaoInvasiva
         """
+        print(idEvento, codRecinto)
         inspecaonaoinvasiva = orm.InspecaonaoInvasiva.query.filter(
             orm.InspecaonaoInvasiva.idEvento == idEvento,
             orm.InspecaonaoInvasiva.codRecinto == codRecinto
@@ -258,9 +268,13 @@ class UseCases:
             inspecaonaoinvasiva_dump['anexos'] = []
             for anexo in inspecaonaoinvasiva.anexos:
                 anexo.load_file(self.basepath)
-                inspecaonaoinvasiva_dump['anexos'].append(
-                    anexo.dump(exclude=['ID', 'inspecao', 'inspecao_id'])
-                )
+                anexo_dump = anexo.dump(exclude=['ID', 'inspecao', 'inspecao_id'])
+                anexo_dump['coordenadasAlerta'] = []
+                for coordenadas in anexo.coordenadasAlerta:
+                    anexo_dump['coordenadasAlerta'].append(
+                        coordenadas.dump(exclude=['ID', 'anexo', 'anexo_id'])
+                    )
+                inspecaonaoinvasiva_dump['anexos'].append(anexo_dump)
         if inspecaonaoinvasiva.listaConteineresUld and \
                 len(inspecaonaoinvasiva.listaConteineresUld) > 0:
             inspecaonaoinvasiva_dump['listaConteineresUld'] = []
@@ -282,7 +296,6 @@ class UseCases:
                 inspecaonaoinvasiva_dump['listaManifestos'].append(
                     manifesto.dump(exclude=['ID', 'inspecao', 'inspecao_id'])
                 )
-
         if inspecaonaoinvasiva.identificadores and \
                 len(inspecaonaoinvasiva.identificadores) > 0:
             inspecaonaoinvasiva_dump['listaCarga'] = []
@@ -297,16 +310,14 @@ class UseCases:
         pesagemveiculocarga = self.insert_evento(orm.PesagemVeiculoCarga, evento,
                                                  commit=False)
         listareboques = evento.get('listaSemirreboque', [])
-        for reboque in listareboques:
-            logging.info('Creating Semirreboque %s..',
-                         reboque.get('placa'))
-            print(reboque)
-            semirreboque = orm.ReboquePesagemVeiculoCarga(pesagem=pesagemveiculocarga,
-                                                          **reboque)
-            self.db_session.add(semirreboque)
+        self.insert_filhos(pesagemveiculocarga.ID, listareboques,
+                           orm.ReboquePesagemVeiculoCarga, 'pesagem_id')
         listaconteineres = evento.get('listaConteineresUld', [])
         self.insert_filhos(pesagemveiculocarga.ID, listaconteineres,
                            orm.ConteinerPesagemVeiculoCarga, 'pesagem_id')
+        listaManifestos = evento.get('listaManifestos', [])
+        self.insert_filhos(pesagemveiculocarga.ID, listaManifestos,
+                           orm.ManifestoPesagemVeiculoCarga, 'pesagem_id')
         self.db_session.commit()
         self.db_session.refresh(pesagemveiculocarga)
         return pesagemveiculocarga
@@ -325,18 +336,19 @@ class UseCases:
             orm.PesagemVeiculoCarga.codRecinto == codRecinto
         ).outerjoin(
             orm.ReboquePesagemVeiculoCarga
+        ).outerjoin(
+            orm.ConteinerPesagemVeiculoCarga
+        ).outerjoin(
+            orm.ManifestoPesagemVeiculoCarga
         ).one()
         pesagemveiculocarga_dump = evento.dump()
         lexclude = ['ID', 'pesagem', 'pesagem_id']
-        if evento.listaSemirreboque and \
-                len(evento.listaSemirreboque) > 0:
-            pesagemveiculocarga_dump['listaSemirreboque'] = []
-            for semirreboque in evento.listaSemirreboque:
-                pesagemveiculocarga_dump['listaSemirreboque'].append(
-                    semirreboque.dump(exclude=['ID', 'pesagem', 'pesagem_id'])
-                )
+        pesagemveiculocarga_dump['listaSemirreboque'] = \
+            self.load_filhos(evento.listaSemirreboque, lexclude)
         pesagemveiculocarga_dump['listaConteineresUld'] = \
             self.load_filhos(evento.listaConteineresUld, lexclude)
+        pesagemveiculocarga_dump['listaManifestos'] = \
+            self.load_filhos(evento.listaManifestos, lexclude)
         return pesagemveiculocarga_dump
 
     def insert_acessoveiculo(self, evento: dict) -> orm.AcessoVeiculo:
@@ -344,13 +356,27 @@ class UseCases:
         acessoveiculo = self.insert_evento(orm.AcessoVeiculo, evento,
                                            commit=False)
         listareboques = evento.get('listaSemirreboque', [])
-        for reboque in listareboques:
-            logging.info('Creating Semirreboque %s..',
-                         reboque.get('placa'))
-            print(reboque)
-            semirreboque = orm.ReboqueGate(acessoveiculo=acessoveiculo,
-                                           **reboque)
-            self.db_session.add(semirreboque)
+        self.insert_filhos(acessoveiculo.ID, listareboques,
+                           orm.ReboqueGate, 'acessoveiculo_id')
+        listaconteineres = evento.get('listaConteineresUld', [])
+        self.insert_filhos(acessoveiculo.ID, listaconteineres,
+                           orm.ConteineresGate, 'acessoveiculo_id')
+        listamanifestos = evento.get('listaManifestos', [])
+        self.insert_filhos(acessoveiculo.ID, listamanifestos,
+                           orm.ManifestoGate, 'acessoveiculo_id')
+        listadidue = evento.get('listaDiDue', [])
+        self.insert_filhos(acessoveiculo.ID, listadidue,
+                           orm.DiDueGate, 'acessoveiculo_id')
+        for item in evento.get('listaChassi'):
+            ochassi = orm.ChassiGate(
+                acessoveiculo_id=acessoveiculo.ID, num=item
+            )
+            self.db_session.add(ochassi)
+        for item in evento.get('listaNfe'):
+            anfe = orm.NfeGate(
+                acessoveiculo=acessoveiculo, chavenfe=item
+            )
+            self.db_session.add(anfe)
         self.db_session.commit()
         self.db_session.refresh(acessoveiculo)
         return acessoveiculo
@@ -364,19 +390,43 @@ class UseCases:
         :param IDEvento: ID do Evento informado pelo recinto
         :return: instância objeto orm.InspecaonaoInvasiva
         """
-        acessoveiculo = orm.AcessoVeiculo.query.filter(
+        evento = orm.AcessoVeiculo.query.filter(
             orm.AcessoVeiculo.idEvento == idEvento,
             orm.AcessoVeiculo.codRecinto == codRecinto
         ).outerjoin(
             orm.ReboqueGate
+        ).outerjoin(
+            orm.ConteineresGate
+        ).outerjoin(
+            orm.ManifestoGate
+        ).outerjoin(
+            orm.DiDueGate
+        ).outerjoin(
+            orm.NfeGate
+        ).outerjoin(
+            orm.ChassiGate
         ).one()
-        acessoveiculo_dump = acessoveiculo.dump()
-        if acessoveiculo.listaSemirreboque and \
-                len(acessoveiculo.listaSemirreboque) > 0:
-            acessoveiculo_dump['listaSemirreboque'] = []
-            for semirreboque in acessoveiculo.listaSemirreboque:
-                acessoveiculo_dump['listaSemirreboque'].append(
-                    semirreboque.dump(exclude=['ID', 'pesagem', 'pesagem_id'])
+        acessoveiculo_dump = evento.dump()
+        lexclude = ['ID', 'acessoveiculo', 'acessoveiculo_id']
+        acessoveiculo_dump['listaSemirreboque'] = \
+            self.load_filhos(evento.listaSemirreboque, lexclude)
+        acessoveiculo_dump['listaConteineresUld'] = \
+            self.load_filhos(evento.listaConteineresUld, lexclude)
+        acessoveiculo_dump['listaManifestos'] = \
+            self.load_filhos(evento.listaManifestos, lexclude)
+        acessoveiculo_dump['listaDiDue'] = \
+            self.load_filhos(evento.listaDiDue, lexclude)
+        if evento.listaChassi and len(evento.listaChassi) > 0:
+            acessoveiculo_dump['listaChassi'] = []
+            for item in evento.listaChassi:
+                acessoveiculo_dump['listaChassi'].append(
+                    item.num
+                )
+        if evento.listaNfe and len(evento.listaNfe) > 0:
+            acessoveiculo_dump['listaNfe'] = []
+            for item in evento.listaNfe:
+                acessoveiculo_dump['listaNfe'].append(
+                    item.chavenfe
                 )
         return acessoveiculo_dump
 
