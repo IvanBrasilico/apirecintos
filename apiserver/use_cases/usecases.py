@@ -355,9 +355,23 @@ class UseCases:
         logging.info('Creating PesagemVeiculoCarga %s..', evento.get('IDEvento'))
         acessoveiculo = self.insert_evento(orm.AcessoVeiculo, evento,
                                            commit=False)
+
         listareboques = evento.get('listaSemirreboque', [])
-        self.insert_filhos(acessoveiculo.ID, listareboques,
-                           orm.ReboqueGate, 'acessoveiculo_id')
+        for reboque in listareboques:
+            reboque['inspecao_id'] = acessoveiculo.ID
+            logging.info('Creating semirreboque %s..',
+                         reboque.get('placa'))
+            ormreboque = orm.ReboqueGate(acessoveiculo=acessoveiculo,
+                                              **reboque)
+            self.db_session.add(ormreboque)
+            if reboque.get('listaLacres'):
+                self.db_session.flush()
+                self.db_session.refresh(ormreboque)
+                self.insert_filhos(ormreboque.ID,
+                                   reboque.get('listaLacres'),
+                                   orm.LacreReboque,
+                                   'reboquegate_id')
+
         listaconteineres = evento.get('listaConteineresUld', [])
         self.insert_filhos(acessoveiculo.ID, listaconteineres,
                            orm.ConteineresGate, 'acessoveiculo_id')

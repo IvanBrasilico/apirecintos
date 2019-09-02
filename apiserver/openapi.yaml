@@ -7,6 +7,7 @@ info:
   version: "1.0b"
 servers:
 - url: /
+- url: /apirecintos
 paths:
   /auth:
     post:

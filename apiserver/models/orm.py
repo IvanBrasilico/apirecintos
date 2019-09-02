@@ -40,16 +40,30 @@ class BaseDumpable(Base):
         # print(ohash)
         return ohash
 
+
 class Manifesto(BaseDumpable):
     __abstract__ = True
     __table_args__ = {'sqlite_autoincrement': True}
     num = Column(String(100))
     tipo = Column(String)
-    conhecimentos = []
 
     def __init__(self, **kwargs):
         self.num = kwargs.get('num')
         self.tipo = kwargs.get('tipo')
+
+
+class Lacre(BaseDumpable):
+    __abstract__ = True
+    __table_args__ = {'sqlite_autoincrement': True}
+    num = Column(String(100))
+    tipo = Column(String)
+    localSif = Column(String)
+
+    def __init__(self, **kwargs):
+        self.num = kwargs.get('num')
+        self.tipo = kwargs.get('tipo')
+        self.localSif = kwargs.get('localSif')
+
 
 class EventoBase(BaseDumpable):
     __abstract__ = True
@@ -153,7 +167,6 @@ class ManifestoPesagemVeiculoCarga(Manifesto):
     )
 
 
-
 class InspecaonaoInvasiva(EventoBase):
     __tablename__ = 'inspecoesnaoinvasivas'
     __table_args__ = {'sqlite_autoincrement': True}
@@ -241,7 +254,6 @@ class AnexoBase(BaseDumpable):
         self.content = base64_string
 
 
-
 class AnexoInspecao(AnexoBase):
     __tablename__ = 'anexosinspecao'
     __table_args__ = {'sqlite_autoincrement': True}
@@ -252,6 +264,7 @@ class AnexoInspecao(AnexoBase):
     inspecao = relationship(
         'InspecaonaoInvasiva', backref=backref('anexos')
     )
+
     # TODO: Fazer coordenadas
     def __init__(self, **kwargs):
         superkwargs = dict([
@@ -325,8 +338,6 @@ class Semirreboque(BaseDumpable):
     )
 
 
-
-
 class ManifestoInspecaonaoInvasiva(Manifesto):
     __tablename__ = 'listamanifestos'
     __table_args__ = {'sqlite_autoincrement': True}
@@ -393,11 +404,6 @@ class ConteineresGate(BaseDumpable):
     cnpjCliente = Column(String(14))
     nmCliente = Column(String(30))
     avarias = Column(String(100))
-    lacres = Column(String(30))
-    lacresverificados = Column(String(30))
-    localsif = Column(String(20))
-    lacressif = Column(String(30))
-    lacressifverificados = Column(String(30))
     acessoveiculo_id = Column(Integer, ForeignKey('acessosveiculo.ID'))
     acessoveiculo = relationship(
         'AcessoVeiculo', backref=backref('listaConteineresUld')
@@ -415,7 +421,17 @@ class ConteineresGate(BaseDumpable):
         self.imoNavio = kwargs.get('imoNavio')
         self.cnpjCliente = kwargs.get('cnpjCliente')
         self.nmCliente = kwargs.get('nmCliente')
-        self.lacres = kwargs.get('lacres')
+        self.avarias = kwargs.get('avarias')
+
+
+class LacreConteiner(Lacre):
+    __tablename__ = 'lacresconteinergate'
+    __table_args__ = {'sqlite_autoincrement': True}
+    ID = Column(Integer, primary_key=True)
+    conteinergate_id = Column(Integer, ForeignKey('conteineresgate.ID'))
+    conteinergate = relationship(
+        'ConteineresGate', backref=backref('listaLacres')
+    )
 
 
 class ReboqueGate(BaseDumpable):
@@ -428,11 +444,6 @@ class ReboqueGate(BaseDumpable):
     cnpjCliente = Column(String(14))
     nmCliente = Column(String(50))
     avarias = Column(String(50))
-    lacres = Column(String(50))
-    lacresverificados = Column(String(30))
-    localsif = Column(String(20))
-    lacressif = Column(String(30))
-    lacressifverificados = Column(String(30))
     acessoveiculo_id = Column(Integer, ForeignKey('acessosveiculo.ID'))
     acessoveiculo = relationship(
         'AcessoVeiculo', backref=backref('listaSemirreboque')
@@ -443,9 +454,20 @@ class ReboqueGate(BaseDumpable):
         self.placa = kwargs.get('placa')
         self.ocrPlaca = kwargs.get('ocrPlaca')
         self.vazio = kwargs.get('vazio')
-        self.avaria = kwargs.get('avaria')
         self.cnpjCliente = kwargs.get('cnpjCliente')
         self.nmCliente = kwargs.get('nmCliente')
+        self.avarias = kwargs.get('avarias')
+
+
+class LacreReboque(Lacre):
+    __tablename__ = 'lacresreboquegate'
+    __table_args__ = {'sqlite_autoincrement': True}
+    ID = Column(Integer, primary_key=True)
+    reboquegate_id = Column(Integer, ForeignKey('reboquesgate.ID'))
+    reboquegate = relationship(
+        'ReboqueGate', backref=backref('listaLacres')
+    )
+
 
 class ManifestoGate(Manifesto):
     __tablename__ = 'listamanifestosgate'
@@ -475,6 +497,7 @@ class DiDueGate(BaseDumpable):
         'AcessoVeiculo', backref=backref('listaDiDue')
     )
 
+
 class ChassiGate(BaseDumpable):
     __tablename__ = 'listachassigate'
     __table_args__ = {'sqlite_autoincrement': True}
@@ -488,6 +511,7 @@ class ChassiGate(BaseDumpable):
     def __init__(self, acessoveiculo_id, num):
         self.acessoveiculo_id = acessoveiculo_id
         self.num = num
+
 
 class NfeGate(BaseDumpable):
     __tablename__ = 'listanfegate'
