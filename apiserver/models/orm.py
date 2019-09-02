@@ -40,6 +40,16 @@ class BaseDumpable(Base):
         # print(ohash)
         return ohash
 
+class Manifesto(BaseDumpable):
+    __abstract__ = True
+    __table_args__ = {'sqlite_autoincrement': True}
+    num = Column(String(100))
+    tipo = Column(String)
+    conhecimentos = []
+
+    def __init__(self, **kwargs):
+        self.num = kwargs.get('num')
+        self.tipo = kwargs.get('tipo')
 
 class EventoBase(BaseDumpable):
     __abstract__ = True
@@ -133,12 +143,10 @@ class ConteinerPesagemVeiculoCarga(BaseDumpable):
     )
 
 
-class ManifestoPesagemVeiculoCarga(BaseDumpable):
+class ManifestoPesagemVeiculoCarga(Manifesto):
     __tablename__ = 'listamanifestospesagem'
     __table_args__ = {'sqlite_autoincrement': True}
     ID = Column(Integer, primary_key=True)
-    num = Column(String(100))
-    tipo = Column(String)
     pesagem_id = Column(Integer, ForeignKey('pesagensveiculocarga.ID'))
     pesagem = relationship(
         'PesagemVeiculoCarga', backref=backref('listaManifestos')
@@ -313,15 +321,16 @@ class Semirreboque(BaseDumpable):
     inspecao_id = Column(Integer, ForeignKey('inspecoesnaoinvasivas.ID'))
     inspecao = relationship(
         'InspecaonaoInvasiva', backref=backref('listaSemirreboque')
+
     )
 
 
-class Manifesto(BaseDumpable):
+
+
+class ManifestoInspecaonaoInvasiva(Manifesto):
     __tablename__ = 'listamanifestos'
     __table_args__ = {'sqlite_autoincrement': True}
     ID = Column(Integer, primary_key=True)
-    num = Column(String(100))
-    tipo = Column(String)
     inspecao_id = Column(Integer, ForeignKey('inspecoesnaoinvasivas.ID'))
     inspecao = relationship(
         'InspecaonaoInvasiva', backref=backref('listaManifestos')
@@ -383,16 +392,30 @@ class ConteineresGate(BaseDumpable):
     imoNavio = Column(String(30))
     cnpjCliente = Column(String(14))
     nmCliente = Column(String(30))
+    avarias = Column(String(100))
     lacres = Column(String(30))
     lacresverificados = Column(String(30))
     localsif = Column(String(20))
     lacressif = Column(String(30))
     lacressifverificados = Column(String(30))
-    avarias = Column(String(100))
     acessoveiculo_id = Column(Integer, ForeignKey('acessosveiculo.ID'))
     acessoveiculo = relationship(
         'AcessoVeiculo', backref=backref('listaConteineresUld')
     )
+
+    def __init__(self, **kwargs):
+        self.acessoveiculo_id = kwargs.get('acessoveiculo_id')
+        self.num = kwargs.get('num')
+        self.tipo = kwargs.get('tipo')
+        self.ocrNum = kwargs.get('ocrNum')
+        self.vazio = kwargs.get('vazio')
+        self.numBooking = kwargs.get('numBooking')
+        self.portoDescarga = kwargs.get('portoDescarga')
+        self.destinoCarga = kwargs.get('destinoCarga')
+        self.imoNavio = kwargs.get('imoNavio')
+        self.cnpjCliente = kwargs.get('cnpjCliente')
+        self.nmCliente = kwargs.get('nmCliente')
+        self.lacres = kwargs.get('lacres')
 
 
 class ReboqueGate(BaseDumpable):
@@ -415,22 +438,19 @@ class ReboqueGate(BaseDumpable):
         'AcessoVeiculo', backref=backref('listaSemirreboque')
     )
 
-    """
     def __init__(self, **kwargs):
+        self.acessoveiculo_id = kwargs.get('acessoveiculo_id')
         self.placa = kwargs.get('placa')
         self.ocrPlaca = kwargs.get('ocrPlaca')
         self.vazio = kwargs.get('vazio')
         self.avaria = kwargs.get('avaria')
         self.cnpjCliente = kwargs.get('cnpjCliente')
         self.nmCliente = kwargs.get('nmCliente')
-    """
 
-class ManifestoGate(BaseDumpable):
+class ManifestoGate(Manifesto):
     __tablename__ = 'listamanifestosgate'
     __table_args__ = {'sqlite_autoincrement': True}
     ID = Column(Integer, primary_key=True)
-    num = Column(String(100))
-    tipo = Column(String)
     acessoveiculo_id = Column(Integer, ForeignKey('acessosveiculo.ID'))
     acessoveiculo = relationship(
         'AcessoVeiculo', backref=backref('listaManifestos')

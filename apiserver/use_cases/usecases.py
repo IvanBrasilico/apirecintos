@@ -205,8 +205,8 @@ class UseCases:
             manifesto['inspecao_id'] = inspecaonaoinvasiva.ID
             logging.info('Creating manifesto %s..',
                          manifesto.get('num'))
-            ormmanifesto = orm.Manifesto(inspecao=inspecaonaoinvasiva,
-                                         **manifesto)
+            ormmanifesto = orm.ManifestoInspecaonaoInvasiva(inspecao=inspecaonaoinvasiva,
+                                                            **manifesto)
             self.db_session.add(ormmanifesto)
         anexos = evento.get('anexos', [])
         for anexo in anexos:
@@ -261,7 +261,7 @@ class UseCases:
         ).outerjoin(
             orm.Semirreboque
         ).outerjoin(
-            orm.Manifesto
+            orm.ManifestoInspecaonaoInvasiva
         ).one()
         inspecaonaoinvasiva_dump = inspecaonaoinvasiva.dump()
         if inspecaonaoinvasiva.anexos and len(inspecaonaoinvasiva.anexos) > 0:

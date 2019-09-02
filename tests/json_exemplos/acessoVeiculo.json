@@ -42,7 +42,7 @@
 				}
 			],
 			"avaria": false,
-			"cnpjCliente":0,
+			"cnpjCliente": "0",
 			"nmCliente": "string"
 		}
 	],
@@ -64,7 +64,7 @@
 			"portoDescarga": "string",
 			"destinoCarga": "string",
 			"imoNavio": "string",
-			"cnpjCliente":0,
+			"cnpjCliente":"0",
 			"nmCliente": "string"
 		}
 	],
@@ -86,6 +86,6 @@
 			"tipo": "string"
 		}
 	],
-	"listaChassi": ["string","string"],
-	"listaNfe": [0,0,0]
+	"listaChassi": ["string", "string"],
+	"listaNfe": ["0", "0", "0"]
 }
