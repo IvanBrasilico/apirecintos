@@ -57,3 +57,6 @@ class UseCaseTestCase(BaseTestCase):
         print(sorted(evento.items(), key=lambda x: x[0]))
         print(sorted(evento_banco_load.items(), key=lambda x: x[0]))
         self.compara_eventos(evento, evento_banco_load)
+        self.purge_datas(evento)
+        self.purge_datas(evento_banco_load)
+        self.assertDictContainsSubset(evento, evento_banco_load)

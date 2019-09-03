@@ -74,12 +74,10 @@ class BaseTestCase(TestCase):
         token = rv.data.decode('utf-8').strip()
         self.headers = {'Authorization': 'Bearer %s' % token}
 
-    def purge_datas(self, adict, bdict):
+    def purge_datas(self, adict):
         for data in self.data_fields:
             if adict.get(data) is not None:
                 adict.pop(data)
-            if bdict.get(data) is not None:
-                bdict.pop(data)
 
     def compare_dict(self, adict, bdict):
         for k, v in adict.items():
@@ -103,7 +101,8 @@ class BaseTestCase(TestCase):
                             self.assertEqual(v, vb)
 
     def compara_eventos(self, teste, response_json):
-        self.purge_datas(teste, response_json)
+        self.purge_datas(teste)
+        self.purge_datas(response_json)
         # sub_response = extractDictAFromB(teste, response_json)
         self.compare_dict(teste, response_json)
         # self.maxDiff = None
