@@ -129,7 +129,7 @@ class UseCases:
         """
         for filho in osfilhos:
             params = {**{fk_no_filho: idevento}, **filho}
-            print('filho', filho)
+            print(classefilho, filho)
             print('params', params)
             novofilho = classefilho(**params)
             self.db_session.add(novofilho)
@@ -358,11 +358,11 @@ class UseCases:
 
         listareboques = evento.get('listaSemirreboque', [])
         for reboque in listareboques:
-            reboque['inspecao_id'] = acessoveiculo.ID
+            # reboque['acessoveiculo_id'] = acessoveiculo.ID
             logging.info('Creating semirreboque %s..',
                          reboque.get('placa'))
-            ormreboque = orm.ReboqueGate(acessoveiculo=acessoveiculo,
-                                              **reboque)
+            ormreboque = orm.ReboqueGate(acessoveiculo_id=acessoveiculo.ID,
+                                         **reboque)
             self.db_session.add(ormreboque)
             if reboque.get('listaLacres'):
                 self.db_session.flush()
@@ -373,8 +373,21 @@ class UseCases:
                                    'reboquegate_id')
 
         listaconteineres = evento.get('listaConteineresUld', [])
-        self.insert_filhos(acessoveiculo.ID, listaconteineres,
-                           orm.ConteineresGate, 'acessoveiculo_id')
+        for conteiner in listaconteineres:
+            # conteiner['acessoveiculo_id'] = acessoveiculo.ID
+            logging.info('Creating conteinergate %s..',
+                         conteiner.get('placa'))
+            ormconteiner = orm.ConteineresGate(acessoveiculo_id=acessoveiculo.ID,
+                                         **conteiner)
+            self.db_session.add(ormconteiner)
+            if conteiner.get('listaLacres'):
+                self.db_session.flush()
+                self.db_session.refresh(ormconteiner)
+                self.insert_filhos(ormconteiner.ID,
+                                   conteiner.get('listaLacres'),
+                                   orm.LacreConteiner,
+                                   'conteineresgate_id')
+
         listamanifestos = evento.get('listaManifestos', [])
         self.insert_filhos(acessoveiculo.ID, listamanifestos,
                            orm.ManifestoGate, 'acessoveiculo_id')
@@ -410,7 +423,11 @@ class UseCases:
         ).outerjoin(
             orm.ReboqueGate
         ).outerjoin(
+            orm.LacreReboque
+        ).outerjoin(
             orm.ConteineresGate
+        ).outerjoin(
+            orm.LacreConteiner
         ).outerjoin(
             orm.ManifestoGate
         ).outerjoin(
@@ -422,10 +439,21 @@ class UseCases:
         ).one()
         acessoveiculo_dump = evento.dump()
         lexclude = ['ID', 'acessoveiculo', 'acessoveiculo_id']
-        acessoveiculo_dump['listaSemirreboque'] = \
-            self.load_filhos(evento.listaSemirreboque, lexclude)
-        acessoveiculo_dump['listaConteineresUld'] = \
-            self.load_filhos(evento.listaConteineresUld, lexclude)
+
+        semirreboques = self.load_filhos(evento.listaSemirreboque, lexclude)
+        for ind, reboque in enumerate(evento.listaSemirreboque):
+            listaLacres = self.load_filhos(reboque.listaLacres,
+                                           ['ID', 'reboquegate', 'reboquegate_id'])
+            semirreboques[ind]['listaLacres'] = listaLacres
+        acessoveiculo_dump['listaSemirreboque'] = semirreboques
+
+        conteineres = self.load_filhos(evento.listaConteineresUld, lexclude)
+        for ind, conteiner in enumerate(evento.listaConteineresUld):
+            listaLacres = self.load_filhos(conteiner.listaLacres,
+                                           ['ID', 'conteineresgate', 'conteineresgate_id'])
+            conteineres[ind]['listaLacres'] = listaLacres
+            print('Lista LACRES', listaLacres)
+        acessoveiculo_dump['listaConteineresUld'] = conteineres
         acessoveiculo_dump['listaManifestos'] = \
             self.load_filhos(evento.listaManifestos, lexclude)
         acessoveiculo_dump['listaDiDue'] = \

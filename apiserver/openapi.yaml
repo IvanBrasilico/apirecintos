@@ -6,7 +6,6 @@ info:
     e demais intervenientes em carga sobre controle aduaneiro.
   version: "1.0b"
 servers:
-- url: /
 - url: /apirecintos
 paths:
   /auth:
@@ -473,16 +472,17 @@ components:
                   type: string
                 nmCliente:
                   type: string
-                lacres:
-                  type: string
-                lacressif:
-                  type: string
-                localsif:
-                  type: string
-                lacresverificados:
-                  type: string
-                lacressifverificados:
-                  type: string
+                listaLacres:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      num:
+                        type: string
+                      tipo:
+                          type: string
+                      localSif:
+                          type: string
           listaConteineresUld:
             type: array
             items:
@@ -511,16 +511,17 @@ components:
                   type: string
                 nmCliente:
                   type: string
-                lacres:
-                  type: string
-                lacressif:
-                  type: string
-                localsif:
-                  type: string
-                lacresverificados:
-                  type: string
-                lacressifverificados:
-                  type: string
+                listaLacres:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      num:
+                        type: string
+                      tipo:
+                          type: string
+                      localSif:
+                          type: string
           listaManifestos:
             type: array
             items:
@@ -591,9 +592,9 @@ components:
             type: integer
             description: Captura realizada automaticamente pelo OCR, sem intervencao manual ou digitacao
           idBalanca:
-            type: integer
+            type: string
           idCamera:
-            type: integer
+            type: string
           pesoBrutoManifesto:
             type: integer
             description: Peso bruto declarado nos documentos de transporte em kg

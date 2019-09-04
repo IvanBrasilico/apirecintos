@@ -75,7 +75,7 @@ class BaseTestCase(TestCase):
 
     def get_keys(self):
         """Acessa endpoint para gerar chave, guarda codigo recinto assinado."""
-        rv = self.client.post('/privatekey', json={'recinto': self.recinto})
+        rv = self.client.post('/apirecintos/privatekey', json={'recinto': self.recinto})
         assert rv.json
         pem = rv.json.get('pem')
         self.assinado = rv.json.get('assinado')
@@ -83,7 +83,7 @@ class BaseTestCase(TestCase):
     def get_token(self):
         recinto_senha = {'recinto': self.recinto,
                          'senha': 'senha'}
-        rv = self.client.post('/auth', json=recinto_senha)
+        rv = self.client.post('/apirecintos/auth', json=recinto_senha)
         # assert rv.status_code == 200
         token = rv.data.decode('utf-8').strip()
         self.headers = {'Authorization': 'Bearer %s' % token}

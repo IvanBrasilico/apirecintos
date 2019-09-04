@@ -28,7 +28,7 @@ class APITestCase(BaseTestCase):
     def test1_evento_invalido_400(self):
         for nomeclasse in self.tipos_evento:
             print(nomeclasse)
-            rv = self.client.post(nomeclasse.lower(),
+            rv = self.client.post('/apirecintos/' + nomeclasse.lower(),
                                   json={'idEvento': 1},
                                   headers=self.headers)
             assert rv.status_code == 400
@@ -39,7 +39,7 @@ class APITestCase(BaseTestCase):
 
     def test2_evento_nao_encontrado_404(self):
         for nomeclasse in self.tipos_evento:
-            rv = self.client.get(nomeclasse.lower() + '/1', headers=self.headers)
+            rv = self.client.get('/apirecintos/' + nomeclasse.lower() + '/1', headers=self.headers)
             assert rv.status_code == 404
             assert rv.is_json is True
 
@@ -66,14 +66,17 @@ class APITestCase(BaseTestCase):
     def test3_api(self):
         for classe, teste in self.testes.items():
             print(classe)
-            rv = self.client.post(classe.lower(),
+            rv = self.client.post('/apirecintos/' + classe.lower(),
                                   json=teste,
                                   headers=self.headers)
             assert rv.status_code == 201
             assert rv.is_json is True
             response_token = rv.json
-            rv = self.client.get(classe.lower() + '/' + str(teste['IDEvento']),
-                                 headers=self.headers)
+            rv = self.client.get(
+                '/apirecintos/' + classe.lower() +
+                '/' + str(teste['codRecinto']) +
+                '/' + str(teste['idEvento']),
+                headers=self.headers)
             assert rv.status_code == 200
             assert rv.is_json is True
             self.compara_eventos(deepcopy(teste), rv.json)
@@ -81,10 +84,10 @@ class APITestCase(BaseTestCase):
     def test4_evento_duplicado_409(self):
         for classe, teste in self.testes.items():
             print(classe)
-            rv = self.client.post(classe.lower(),
+            rv = self.client.post('/apirecintos/' + classe.lower(),
                                   json=teste,
                                   headers=self.headers)
-            rv = self.client.post(classe.lower(),
+            rv = self.client.post('/apirecintos/' + classe.lower(),
                                   json=teste,
                                   headers=self.headers)
             assert rv.status_code == 409
@@ -92,7 +95,7 @@ class APITestCase(BaseTestCase):
 
     def _api_insert(self, classe, cadastro):
         print(classe)
-        rv = self.client.post(classe.lower(),
+        rv = self.client.post('/apirecintos/' + classe.lower(),
                               json=cadastro,
                               headers=self.headers)
         assert rv.status_code == 201
@@ -100,7 +103,7 @@ class APITestCase(BaseTestCase):
 
     def _api_load(self, classe, cadastro):
         print(classe)
-        rv = self.client.get(classe.lower() + '/' + str(cadastro['IDEvento']),
+        rv = self.client.get('/apirecintos/' + classe.lower() + '/' + str(cadastro['idEvento']),
                              headers=self.headers)
         assert rv.status_code == 200
         assert rv.is_json is True

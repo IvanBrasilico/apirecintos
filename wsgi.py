@@ -18,10 +18,12 @@ orm.Base.metadata.create_all(bind=engine)
 app = create_app(session, engine)
 
 if __name__ == '__main__':
+    """
     application = DispatcherMiddleware(app,
                                        {
                                            '/apirecintos': app
                                        })
 
     run_simple('localhost', 8000, application, use_reloader=True)
-    # app.run(port=8000, threaded=False, debug=True)
+    """
+    app.run(port=8000, threaded=False, debug=True)
