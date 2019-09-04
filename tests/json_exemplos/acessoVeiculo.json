@@ -71,11 +71,11 @@
 	"listaManifestos": [
 		{
 			"num": "string",
-			"tipo": "string",
+			"tipo": "lci",
 			"listaConhecimentos": [
 				{
 					"num": "string",
-					"tipo": "string"
+					"tipo": "CE"
 				}
 			 ]
 		 }
@@ -83,7 +83,7 @@
 	"listaDiDue": [
 		{
 			"num": "string",
-			"tipo": "string"
+			"tipo": "DUE"
 		}
 	],
 	"listaChassi": ["string", "string"],

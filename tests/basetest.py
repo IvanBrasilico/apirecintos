@@ -1,7 +1,7 @@
-import random
-from datetime import datetime
 import json
 import os
+import random
+from datetime import datetime
 from unittest import TestCase
 
 from dateutil.parser import parse
@@ -9,6 +9,7 @@ from dateutil.parser import parse
 from apiserver.models import orm
 
 JSON_TEST_CASES_PATH = os.path.join(os.path.dirname(__file__), 'json_exemplos')
+
 
 def random_str(num, fila):
     result = ''
@@ -31,18 +32,8 @@ def create_session():
         db_session, engine = orm.init_db('sqlite:///:memory:')
     return db_session, engine
 
-def extractDictAFromB(A, B):
-    return dict([(k, B[k]) for k in A.keys() if k in B.keys()])
-
 
 class BaseTestCase(TestCase):
-
-
-    def open_json_test_case(self, classe_evento):
-        with open(os.path.join(JSON_TEST_CASES_PATH,
-                               classe_evento.__name__) + '.json') as json_in:
-            return json.load(json_in)
-
 
     def setUp(self):
         self.db_session, self.engine = create_session()
@@ -51,13 +42,36 @@ class BaseTestCase(TestCase):
         self.assinado = ''
         self.headers = {}
         self.data_fields = ['dataevento', 'dataregistro', 'dataoperacao',
-                     'dataliberacao', 'dataagendamento', 'dtHrTransmissao',
-                     'dtHrOcorrencia', 'dtHrRegistro',
-                     'datacriacao', 'datamodificacao']
+                            'dataliberacao', 'dataagendamento', 'dtHrTransmissao',
+                            'dtHrOcorrencia', 'dtHrRegistro',
+                            'datacriacao', 'datamodificacao']
+        self.tipos_evento = set(
+            [nomearquivo[:-5] for nomearquivo in
+             os.listdir(JSON_TEST_CASES_PATH)]
+        )
+        self.load_test_cases()
 
     def tearDown(self) -> None:
         orm.Base.metadata.drop_all(bind=self.engine)
 
+    def open_json_test_case(self, classe_evento):
+        if isinstance(classe_evento, str):
+            nomeclasse = classe_evento
+        else:
+            nomeclasse = classe_evento.__name__
+        with open(os.path.join(JSON_TEST_CASES_PATH,
+                               nomeclasse) + '.json') as json_in:
+            return json.load(json_in)
+
+    def load_test_cases(self):
+        self.testes = {}
+        for nomeclasse in self.tipos_evento:
+            self.testes[nomeclasse] = self.open_json_test_case(nomeclasse)
+
+
+
+    def extractDictAFromB(self, A, B):
+        return dict([(k, B[k]) for k in A.keys() if k in B.keys()])
 
     def get_keys(self):
         """Acessa endpoint para gerar chave, guarda codigo recinto assinado."""

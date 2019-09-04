@@ -36,11 +36,11 @@
 	"listaManifestos": [
 		{
 			"num": "string",
-			"tipo": "string",
+			"tipo": "lci",
 			"listaConhecimentos": [
 					{
 						"num": "string",
-						"tipo": "string"
+						"tipo": "CE"
 					}
 			 ]
 		 }

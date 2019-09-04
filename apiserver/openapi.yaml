@@ -286,6 +286,14 @@ components:
       - IBAMA
       - PF
       - JUSTICA
+    TipoManifesto:
+      type: string
+      description: Sigla que identifica o tipo de manifesto
+      enum:
+      - lce
+      - lci
+      - bce
+      - cab
     TipoDocumentoTransporte:
       type: string
       description: Sigla que identifica o tipo de documento de transporte que ampara a entrada ou saida da carga
@@ -323,6 +331,7 @@ components:
       - Rodoviario
       - Aereo
       - Maritimo
+      - R
     RespostaPadrao:
       type: object
       properties:
@@ -521,7 +530,7 @@ components:
                   type: string
                   description: Numero do documento de transporte
                 tipo:
-                  $ref: '#/components/schemas/TipoDocumentoTransporte'
+                  $ref: '#/components/schemas/TipoManifesto'
           listaDiDue:
             type: array
             items:
@@ -554,7 +563,7 @@ components:
                   type: string
                   description: Numero do documento de transporte
                 tipo:
-                  $ref: '#/components/schemas/TipoDocumentoTransporte'
+                  $ref: '#/components/schemas/TipoManifesto'
           listaSemirreboque:
             type: array
             items:
@@ -610,7 +619,7 @@ components:
                   type: string
                   description: Numero do documento de transporte
                 tipo:
-                  $ref: '#/components/schemas/TipoDocumentoTransporte'
+                  $ref: '#/components/schemas/TipoManifesto'
           listaCarga:
             type: array
             items:
@@ -647,9 +656,9 @@ components:
             items:
               $ref: '#/components/schemas/Anexos'
           idScanner:
-            type: integer
+            type: string
           idCamera:
-            type: integer
+            type: string
     FiltroNovoEvento:
       type: object
       properties:
